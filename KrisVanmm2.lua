@@ -1,6 +1,6 @@
 --[[
-	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.1.2
-	[Modified: Added Return to Menu button with confirmation dialog in Settings tab]
+	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.2.1
+	[Modified: Updated version to v1.2.1, renamed ESP tab to "透視", and integrated ESP Gun functionality]
 ]]
 
 local Players = game:GetService("Players")
@@ -10,9 +10,11 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualUser = game:GetService("VirtualUser")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local env = getgenv and getgenv() or _G
 
 local isAntiAfkEnabled = false
 local isWalkSpeedEnabled = false
@@ -22,9 +24,11 @@ local isInfiniteJumpEnabled = false
 -- MM2 專用狀態
 local isAutoFarmEnabled = false
 local isEspEnabled = false
+local isGunEspEnabled = false
 local coinsCollected = 0
 local farmStartTime = 0
 local espLoopConnection = nil
+local gunEspLoopConnection = nil
 
 local activeConnections = {}
 
@@ -35,13 +39,14 @@ local function stopAllRoutines()
     isInfiniteJumpEnabled = false
     isAutoFarmEnabled = false
     isEspEnabled = false
+    isGunEspEnabled = false
 
     if espLoopConnection then
         task.cancel(espLoopConnection)
         espLoopConnection = nil
     end
 
-    -- 清理 ESP
+    -- 清理 Player ESP
     for _, p in ipairs(Players:GetPlayers()) do
         if p.Character then
             local head = p.Character:FindFirstChild("Head")
@@ -49,6 +54,13 @@ local function stopAllRoutines()
             local hl = p.Character:FindFirstChild("RoleHighlight")
             if hl then hl:Destroy() end
         end
+    end
+
+    -- 清理 Gun ESP
+    local gun = Workspace:FindFirstChild("GunDrop", true)
+    if gun then
+        if gun:FindFirstChild("GunHighlight") then gun.GunHighlight:Destroy() end
+        if gun:FindFirstChild("GunEsp") then gun.GunEsp:Destroy() end
     end
 
     for _, conn in ipairs(activeConnections) do
@@ -115,7 +127,7 @@ local function playStartupLoadingScreen(onFinished)
     titleLabel.Size = UDim2.new(0, 400, 0, 50)
     titleLabel.Position = UDim2.new(0.5, -200, 0.5, 25)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "KrisVan Script"
+    titleLabel.Text = "KrisVan Script v1.2.1"
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 32
     titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -331,21 +343,22 @@ runMainScript = function(selectedLanguage)
     local L = {}
     if selectedLanguage == "ZH" then
         L = {
-            Title = "⚔️ KrisVan 遊戲輔助 v1.1.2",
+            Title = "⚔️ KrisVan 遊戲輔助 v1.2.1",
             Tab0 = "👤 作者資訊",
             TabLog = "📋 更新日誌",
             TabFarm = "💎 自動收集",
-            TabESP = "👁️ 玩家透視",
+            TabESP = "👁️ 透視",
+            TabFling = "🥊 擊飛清單",
             Tab1 = "⚙️ 其他設定",
             SwitchOff = "關閉",
             SwitchOn = "開啟",
             AuthorContent = "【 作者資訊 】\n• 作者 / 開發者：KrisVan\n• 功能：專為 Roblox 打造的強大輔助介面。\n• 感謝您的使用與支持！",
-            LogHeader = "[📋 更新日誌 (v1.1.2 更新) 📋]",
+            LogHeader = "[📋 更新日誌 (v1.2.1 更新) 📋]",
             LogClickHint = " (點擊展開/收合)",
             Logs = {
-                {version = "v1.1.2 (返回選單功能)", details = "• 新增「返回遊戲選單」按鈕與二次確認彈窗，支援快速切換回主選單。"},
-                {version = "v1.1.1 (UI Bug 修復)", details = "• 修復了自動收集分頁介面排版錯位、開關被遮擋的 UI 顯示錯誤問題。\n• 優化各個控制項在不同螢幕解析度下的適應性。"},
-                {version = "v1.1.0 (中型更新)", details = "• 新增功能 1：智慧路徑躲避系統，最佳化自動收集金幣時的移動邏輯，減少卡牆機率。\n• 新增功能 2：全景準星與武器狀態 HUD，即時顯示當前角色持有武器與輔助瞄準提示。"},
+                {version = "v1.2.1 (透視分頁擴充)", details = "• 將「玩家透視」分頁精簡重新命名為「透視」。\n• 新增「槍枝透視 (ESP Gun)」功能，支援地圖掉落槍枝的 3D 高亮與標籤提示。"},
+                {version = "v1.2.0 (擊飛清單與返回選單功能)", details = "• 新增「🥊 擊飛清單」分頁，收錄兇手擊飛、警長英雄擊飛及指定玩家擊飛功能。\n• 新增「返回遊戲選單」按鈕與二次確認彈窗。"},
+                {version = "v1.1.5 (UI Bug 修復)", details = "• 修復了自動收集分頁介面排版錯位、開關被遮擋的 UI 顯示錯誤問題。\n• 優化各個控制項在不同螢幕解析度下的適應性。"},
                 {version = "v1.0.0", details = "• KrisVan 遊戲輔助正式發布\n• 內建 MM2 自動收集、玩家透視、移動速度、跳躍高度、無限跳與防掛機功能"}
             },
             SpeedTip = "移動速度 (16~200)",
@@ -363,21 +376,22 @@ runMainScript = function(selectedLanguage)
         }
     elseif selectedLanguage == "CN" then
         L = {
-            Title = "⚔️ KrisVan 游戏辅助 v1.1.2",
+            Title = "⚔️ KrisVan 游戏辅助 v1.2.1",
             Tab0 = "👤 作者信息",
             TabLog = "📋 更新日志",
             TabFarm = "💎 自动收集",
-            TabESP = "👁️ 玩家透视",
+            TabESP = "👁️ 透视",
+            TabFling = "🥊 击飞列表",
             Tab1 = "⚙️ 其他设定",
             SwitchOff = "关闭",
             SwitchOn = "开启",
             AuthorContent = "【 作者信息 】\n• 作者 / 开发者：KrisVan\n• 功能：专为 Roblox 打造的强大辅助界面。\n• 感谢您的使用与支持！",
-            LogHeader = "[📋 更新日志 (v1.1.2 更新) 📋]",
+            LogHeader = "[📋 更新日志 (v1.2.1 更新) 📋]",
             LogClickHint = " (点击展开/收合)",
             Logs = {
-                {version = "v1.1.2 (返回菜单功能)", details = "• 新增“返回游戏菜单”按钮与二次确认弹窗，支持快速切换回主菜单。"},
-                {version = "v1.1.1 (UI Bug 修复)", details = "• 修复了自动收集分页界面排版错位、开关被遮挡的 UI 显示错误问题。\n• 优化各个控件在不同屏幕分辨率下的适应性。"},
-                {version = "v1.1.0 (中型更新)", details = "• 新增功能 1：智能路径躲避系统，优化自动收集金币时的移动逻辑，减少卡墙几率。\n• 新增功能 2：全景准星与武器状态 HUD，实时显示当前角色持有武器与辅助瞄准提示。"},
+                {version = "v1.2.1 (透视分页扩充)", details = "• 将“玩家透视”分页精简重新命名为“透视”。\n• 新增“枪枝透视 (ESP Gun)”功能，支持地图掉落枪枝的 3D 高亮与标签提示。"},
+                {version = "v1.2.0 (击飞列表与返回菜单功能)", details = "• 新增“🥊 击飞列表”分页，收录凶手击飞、警长英雄击飞及指定玩家击飞功能。\n• 新增“返回游戏菜单”按钮与二次确认弹窗。"},
+                {version = "v1.1.5 (UI Bug 修复)", details = "• 修复了自动收集分页界面排版错位、开关被遮挡的 UI 显示错误问题。\n• 优化各个控件在不同屏幕分辨率下的适应性。"},
                 {version = "v1.0.0", details = "• KrisVan 游戏辅助正式发布\n• 内置 MM2 自动收集、玩家透视、移动速度、跳跃高度、无限跳与防挂机功能"}
             },
             SpeedTip = "移动速度 (16~200)",
@@ -395,21 +409,22 @@ runMainScript = function(selectedLanguage)
         }
     else
         L = {
-            Title = "⚔️ KrisVan Script v1.1.2",
+            Title = "⚔️ KrisVan Script v1.2.1",
             Tab0 = "👤 Author",
             TabLog = "📋 Changelog",
             TabFarm = "💎 Auto Farm",
-            TabESP = "👁️ Player ESP",
+            TabESP = "👁️ ESP",
+            TabFling = "🥊 Fling Menu",
             Tab1 = "⚙️ Settings",
             SwitchOff = "OFF",
             SwitchOn = "ON",
             AuthorContent = "[ Author Information ]\n• Author: KrisVan\n• Description: Advanced utility script for Roblox.\n• Thank you for using!",
-            LogHeader = "[📋 Changelog (v1.1.2 Update) 📋]",
+            LogHeader = "[📋 Changelog (v1.2.1 Update) 📋]",
             LogClickHint = " (Click to toggle)",
             Logs = {
-                {version = "v1.1.2 (Return Menu Feature)", details = "• Added Return to Menu button with confirmation dialog for quick navigation."},
-                {version = "v1.1.1 (UI Bug Fix)", details = "• Fixed Auto Farm panel UI layout overlapping and button clipping issues.\n• Improved control responsiveness across various resolutions."},
-                {version = "v1.1.0 (Medium Update)", details = "• New Feature 1: Smart Obstacle Avoidance system, optimizing auto-farm movement logic to reduce wall clipping.\n• New Feature 2: Crosshair & Weapon Status HUD, displaying real-time weapon equipment and aiming assistance."},
+                {version = "v1.2.1 (ESP Tab Expansion)", details = "• Renamed 'Player ESP' tab to simply 'ESP'.\n• Added 'Gun ESP' feature supporting 3D highlights and labels for dropped guns on the map."},
+                {version = "v1.2.0 (Fling Menu & Return Menu)", details = "• Added Fling Menu tab containing Murderer, Sheriff/Hero, and targeted player fling functions.\n• Added Return to Menu button with confirmation dialog."},
+                {version = "v1.1.5 (UI Bug Fix)", details = "• Fixed Auto Farm panel UI layout overlapping and button clipping issues.\n• Improved control responsiveness across various resolutions."},
                 {version = "v1.0.0", details = "• Official release of KrisVan Script\n• Added MM2 Auto Farm, ESP, walkspeed, jumppower, infinite jump & anti-afk features"}
             },
             SpeedTip = "Walk Speed (16~200)",
@@ -608,7 +623,7 @@ runMainScript = function(selectedLanguage)
     sidebar.BackgroundColor3 = Color3.fromRGB(18, 18, 25)
     sidebar.BackgroundTransparency = 0.35
     sidebar.BorderSizePixel = 0
-    sidebar.CanvasSize = UDim2.new(0, 0, 0, 300)
+    sidebar.CanvasSize = UDim2.new(0, 0, 0, 320)
     sidebar.ScrollBarThickness = 4
     sidebar.ScrollingDirection = Enum.ScrollingDirection.Y
     sidebar.Selectable = true
@@ -627,6 +642,7 @@ runMainScript = function(selectedLanguage)
     local panelLog = Instance.new("ScrollingFrame", contentArea)
     local panelFarm = Instance.new("ScrollingFrame", contentArea)
     local panelESP = Instance.new("ScrollingFrame", contentArea)
+    local panelFling = Instance.new("ScrollingFrame", contentArea)
     local panel1 = Instance.new("ScrollingFrame", contentArea)
 
     local function setupPanel(p, canvasHeight)
@@ -641,7 +657,8 @@ runMainScript = function(selectedLanguage)
     setupPanel(panelLog, 620)
     setupPanel(panelFarm, 260)
     setupPanel(panelESP, 220)
-    setupPanel(panel1, 360) -- 調整高度以容納新增的按鈕
+    setupPanel(panelFling, 280)
+    setupPanel(panel1, 360)
 
     local function createTabButton(name, yPos)
         local btn = Instance.new("TextButton", sidebar)
@@ -661,13 +678,14 @@ runMainScript = function(selectedLanguage)
     local tabBtnLog = createTabButton(L.TabLog, 50)
     local tabBtnFarm = createTabButton(L.TabFarm, 92)
     local tabBtnESP = createTabButton(L.TabESP, 134)
-    local tabBtn1 = createTabButton(L.Tab1, 176)
+    local tabBtnFling = createTabButton(L.TabFling, 176)
+    local tabBtn1 = createTabButton(L.Tab1, 218)
 
     local function switchTab(activePanel, activeBtn)
-        panel0.Visible = false panelLog.Visible = false panelFarm.Visible = false panelESP.Visible = false panel1.Visible = false
+        panel0.Visible = false panelLog.Visible = false panelFarm.Visible = false panelESP.Visible = false panelFling.Visible = false panel1.Visible = false
         activePanel.Visible = true
 
-        for _, b in ipairs({tabBtn0, tabBtnLog, tabBtnFarm, tabBtnESP, tabBtn1}) do
+        for _, b in ipairs({tabBtn0, tabBtnLog, tabBtnFarm, tabBtnESP, tabBtnFling, tabBtn1}) do
             b.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
             b.BackgroundTransparency = 0.3
             b.TextColor3 = Color3.fromRGB(160, 160, 180)
@@ -681,6 +699,7 @@ runMainScript = function(selectedLanguage)
     tabBtnLog.Activated:Connect(function() switchTab(panelLog, tabBtnLog) end)
     tabBtnFarm.Activated:Connect(function() switchTab(panelFarm, tabBtnFarm) end)
     tabBtnESP.Activated:Connect(function() switchTab(panelESP, tabBtnESP) end)
+    tabBtnFling.Activated:Connect(function() switchTab(panelFling, tabBtnFling) end)
     tabBtn1.Activated:Connect(function() switchTab(panel1, tabBtn1) end)
     switchTab(panel0, tabBtn0)
 
@@ -769,8 +788,6 @@ runMainScript = function(selectedLanguage)
     -- ==========================================
     -- Panel Farm (自動收集)
     -- ==========================================
-    panelFarm.Parent = contentArea
-
     local function createRealFarmRow(name, defaultVal, yPos)
         local frameRow = Instance.new("Frame", panelFarm)
         frameRow.Size = UDim2.new(1, -24, 0, 38)
@@ -901,18 +918,30 @@ runMainScript = function(selectedLanguage)
     end)
 
     -- ==========================================
-    -- Panel ESP (玩家透視)
+    -- Panel ESP (透視)
     -- ==========================================
     local espToggleBtn = Instance.new("TextButton", panelESP)
     espToggleBtn.Size = UDim2.new(1, -24, 0, 38)
     espToggleBtn.Position = UDim2.new(0, 12, 0, 12)
     espToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
     espToggleBtn.BackgroundTransparency = 0.25
-    espToggleBtn.Text = "👁️ 玩家身分透視 (ESP) : " .. L.SwitchOff
+    espToggleBtn.Text = "👁️ 玩家身分透視 : " .. L.SwitchOff
     espToggleBtn.Font = Enum.Font.GothamBold
     espToggleBtn.TextSize = 12
     espToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     Instance.new("UICorner", espToggleBtn).CornerRadius = UDim.new(0, 8)
+
+    local gunEspToggleBtn = Instance.new("TextButton", panelESP)
+    gunEspToggleBtn.Size = UDim2.new(1, -24, 0, 38)
+    gunEspToggleBtn.Position = UDim2.new(0, 12, 0, 58)
+    gunEspToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+    gunEspToggleBtn.BackgroundTransparency = 0.25
+    gunEspToggleBtn.Text = "🔫 槍枝透視 (ESP Gun) : " .. L.SwitchOff
+    gunEspToggleBtn.Font = Enum.Font.GothamBold
+    gunEspToggleBtn.TextSize = 12
+    gunEspToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Instance.new("UICorner", gunEspToggleBtn).CornerRadius = UDim.new(0, 8)
+    panelESP.CanvasSize = UDim2.new(0, 0, 0, 110)
 
     local function clearESP()
         for _, p in ipairs(Players:GetPlayers()) do
@@ -976,7 +1005,7 @@ runMainScript = function(selectedLanguage)
 
     espToggleBtn.Activated:Connect(function()
         isEspEnabled = not isEspEnabled
-        espToggleBtn.Text = "👁️ 玩家身分透視 (ESP) : " .. (isEspEnabled and L.SwitchOn or L.SwitchOff)
+        espToggleBtn.Text = "👁️ 玩家身分透視 : " .. (isEspEnabled and L.SwitchOn or L.SwitchOff)
         espToggleBtn.BackgroundColor3 = isEspEnabled and Color3.fromRGB(130, 40, 190) or Color3.fromRGB(35, 35, 48)
         espToggleBtn.BackgroundTransparency = isEspEnabled and 0.15 or 0.25
 
@@ -990,6 +1019,271 @@ runMainScript = function(selectedLanguage)
         else
             if espLoopConnection then task.cancel(espLoopConnection) espLoopConnection = nil end
             clearESP()
+        end
+    end)
+
+    -- ESP Gun 功能邏輯
+    local function ToggleGunESP(Value)
+        env.GunEsp = Value
+        isGunEspEnabled = Value
+        
+        local function clearGunESP()
+            local gun = Workspace:FindFirstChild("GunDrop", true)
+            if gun then
+                if gun:FindFirstChild("GunHighlight") then gun.GunHighlight:Destroy() end
+                if gun:FindFirstChild("GunEsp") then gun.GunEsp:Destroy() end
+            end
+        end
+
+        if not env.GunEsp then
+            clearGunESP()
+            return
+        end
+
+        gunEspLoopConnection = task.spawn(function()
+            while env.GunEsp do
+                local gun = Workspace:FindFirstChild("GunDrop", true)
+                if gun then
+                    if not gun:FindFirstChild("GunHighlight") then
+                        local gunh = Instance.new("Highlight", gun)
+                        gunh.Name = "GunHighlight"
+                        gunh.FillColor = Color3.fromRGB(255, 220, 50)
+                        gunh.OutlineColor = Color3.fromRGB(255, 255, 255)
+                        gunh.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        gunh.FillTransparency = 0.3
+                        gunh.OutlineTransparency = 0.2
+                    end
+                    
+                    if not gun:FindFirstChild("GunEsp") then
+                        local esp = Instance.new("BillboardGui", gun)
+                        esp.Name = "GunEsp"
+                        esp.Adornee = gun
+                        esp.Size = UDim2.new(5, 0, 5, 0)
+                        esp.AlwaysOnTop = true
+                        
+                        local text = Instance.new("TextLabel", esp)
+                        text.Name = "GunLabel"
+                        text.Size = UDim2.new(1, 0, 1, 0)
+                        text.BackgroundTransparency = 1
+                        text.TextStrokeTransparency = 0.2
+                        text.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                        text.TextColor3 = Color3.fromRGB(255, 220, 50)
+                        text.Font = Enum.Font.FredokaOne
+                        text.TextSize = 16
+                        text.Text = "🔫 Gun Drop"
+                    end
+                end
+                task.wait(0.1)
+            end
+            clearGunESP()
+        end)
+    end
+
+    gunEspToggleBtn.Activated:Connect(function()
+        local newState = not isGunEspEnabled
+        ToggleGunESP(newState)
+        gunEspToggleBtn.Text = "🔫 槍枝透視 (ESP Gun) : " .. (newState and L.SwitchOn or L.SwitchOff)
+        gunEspToggleBtn.BackgroundColor3 = newState and Color3.fromRGB(130, 40, 190) or Color3.fromRGB(35, 35, 48)
+        gunEspToggleBtn.BackgroundTransparency = newState and 0.15 or 0.25
+    end)
+
+    -- ==========================================
+    -- Panel Fling (擊飛清單功能提取)
+    -- ==========================================
+    local function getRoles()
+        local success, data = pcall(function()
+            return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        end)
+        local roles = {}
+        if success and data then
+            for plr, plrData in pairs(data) do
+                if not plrData.Dead then
+                    roles[plr] = plrData.Role
+                end
+            end
+        end
+        return roles
+    end
+
+    local function SHubFling(TargetPlayer)
+        local char = player.Character
+        local hum = char and char:FindFirstChildWhichIsA("Humanoid")
+        local root = (hum and hum.RootPart) or char and char:FindFirstChild("HumanoidRootPart")
+        if not (char and hum and root) then return end
+        
+        local TCharacter = TargetPlayer.Character
+        if not TCharacter then return end
+        local THumanoid = TCharacter:FindFirstChildOfClass("Humanoid")
+        local TRootPart = THumanoid and THumanoid.RootPart
+        local THead = TCharacter:FindFirstChild("Head")
+        local Accessory = TCharacter:FindFirstChildOfClass("Accessory")
+        local Handle = Accessory and Accessory:FindFirstChild("Handle")
+        
+        local oldPos = root.CFrame
+        repeat task.wait()
+            Workspace.CurrentCamera.CameraSubject = THead or Handle or THumanoid
+        until Workspace.CurrentCamera.CameraSubject == THead or Handle or THumanoid
+        
+        local function FPos(BasePart, Pos, Ang)
+            local targetCF = CFrame.new(BasePart.Position) * Pos * Ang
+            root.CFrame = targetCF
+            char:SetPrimaryPartCFrame(targetCF)
+            root.Velocity = Vector3.new(9e7, 9e8, 9e7)
+            root.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
+        end
+        
+        local function SFBasePart(BasePart)
+            local start = tick()
+            local angle = 0
+            local timeout = 2.5
+            repeat
+                if root and THumanoid then
+                    angle = angle + 100
+                    for _, offset in ipairs{CFrame.new(0, 1.5, 0), CFrame.new(0, -1.5, 0), CFrame.new(2.25, 1.5, -2.25), CFrame.new(-2.25, -1.5, 2.25)} do
+                        FPos(BasePart, offset + THumanoid.MoveDirection, CFrame.Angles(math.rad(angle), 0, 0))
+                        task.wait()
+                    end
+                end
+            until BasePart.Velocity.Magnitude > 500 or tick() - start > timeout
+        end
+        
+        local BV = Instance.new("BodyVelocity")
+        BV.Name = "SeYyyVel!?"
+        BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
+        BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        BV.Parent = root
+        hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+        local target = TRootPart or THead or Handle
+        if target then SFBasePart(target) end
+        BV:Destroy()
+        hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+        repeat task.wait()
+            Workspace.CurrentCamera.CameraSubject = hum
+        until Workspace.CurrentCamera.CameraSubject == hum
+        repeat
+            local cf = oldPos * CFrame.new(0, .5, 0)
+            root.CFrame = cf
+            char:SetPrimaryPartCFrame(cf)
+            hum:ChangeState("GettingUp")
+            for _, part in ipairs(char:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Velocity, part.RotVelocity = Vector3.zero, Vector3.zero
+                end
+            end
+            task.wait()
+        until (root.Position - oldPos.p).Magnitude < 25
+    end
+
+    local function createFlingButton(text, yPos, callback)
+        local btn = Instance.new("TextButton", panelFling)
+        btn.Size = UDim2.new(1, -24, 0, 38)
+        btn.Position = UDim2.new(0, 12, 0, yPos)
+        btn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+        btn.BackgroundTransparency = 0.25
+        btn.Text = text
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 12
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+        btn.Activated:Connect(callback)
+        return btn
+    end
+
+    -- 1. Fling Murderer
+    createFlingButton("🗡️ 擊飛兇手 (Fling Murderer)", 12, function()
+        local murderer = nil
+        for plr, role in pairs(getRoles()) do
+            if role == "Murderer" then
+                murderer = Players:FindFirstChild(plr)
+                break
+            end
+        end
+        if murderer and murderer ~= player then
+            SHubFling(murderer)
+        end
+    end)
+
+    -- 2. Fling Sheriff / Hero
+    createFlingButton("🛡️ 擊飛警長/英雄 (Fling Sheriff/Hero)", 58, function()
+        local target = nil
+        for plr, role in pairs(getRoles()) do
+            if role == "Sheriff" or role == "Hero" then
+                target = Players:FindFirstChild(plr)
+                break
+            end
+        end
+        if target and target ~= player then
+            SHubFling(target)
+        end
+    end)
+
+    -- 3. Select Player & Fling UI Setup
+    local selectedTargetName = nil
+    
+    local dropdownBtn = Instance.new("TextButton", panelFling)
+    dropdownBtn.Size = UDim2.new(1, -24, 0, 38)
+    dropdownBtn.Position = UDim2.new(0, 12, 0, 104)
+    dropdownBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    dropdownBtn.BackgroundTransparency = 0.25
+    dropdownBtn.Text = "👤 選擇目標玩家 : (點擊重新整理)"
+    dropdownBtn.Font = Enum.Font.GothamBold
+    dropdownBtn.TextSize = 12
+    dropdownBtn.TextColor3 = Color3.fromRGB(210, 180, 255)
+    Instance.new("UICorner", dropdownBtn).CornerRadius = UDim.new(0, 8)
+
+    local playerListContainer = Instance.new("ScrollingFrame", panelFling)
+    playerListContainer.Size = UDim2.new(1, -24, 0, 80)
+    playerListContainer.Position = UDim2.new(0, 12, 0, 146)
+    playerListContainer.BackgroundColor3 = Color3.fromRGB(20, 18, 28)
+    playerListContainer.BackgroundTransparency = 0.4
+    playerListContainer.BorderSizePixel = 0
+    playerListContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+    playerListContainer.ScrollBarThickness = 3
+    Instance.new("UICorner", playerListContainer).CornerRadius = UDim.new(0, 8)
+
+    local function refreshPlayerList()
+        for _, child in ipairs(playerListContainer:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+        
+        local yOffset = 4
+        local count = 0
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= player then
+                count = count + 1
+                local pBtn = Instance.new("TextButton", playerListContainer)
+                pBtn.Size = UDim2.new(1, -8, 0, 28)
+                pBtn.Position = UDim2.new(0, 4, 0, yOffset)
+                pBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+                pBtn.BackgroundTransparency = 0.3
+                pBtn.Text = " • " .. p.Name
+                pBtn.Font = Enum.Font.Gotham
+                pBtn.TextSize = 11
+                pBtn.TextColor3 = Color3.fromRGB(220, 220, 240)
+                pBtn.TextXAlignment = Enum.TextXAlignment.Left
+                Instance.new("UICorner", pBtn).CornerRadius = UDim.new(0, 6)
+                
+                pBtn.Activated:Connect(function()
+                    selectedTargetName = p.Name
+                    dropdownBtn.Text = "👤 已選擇目標 : " .. p.Name
+                end)
+                
+                yOffset = yOffset + 32
+            end
+        end
+        playerListContainer.CanvasSize = UDim2.new(0, 0, 0, yOffset + 4)
+    end
+
+    dropdownBtn.Activated:Connect(refreshPlayerList)
+    refreshPlayerList()
+
+    -- 4. Fling Selected Player
+    createFlingButton("🚀 擊飛選定玩家 (Fling Selected)", 232, function()
+        if selectedTargetName then
+            local targetPlayer = Players:FindFirstChild(selectedTargetName)
+            if targetPlayer and targetPlayer ~= player then
+                SHubFling(targetPlayer)
+            end
         end
     end)
 
@@ -1119,7 +1413,6 @@ runMainScript = function(selectedLanguage)
             L.ConfirmYes, 
             L.ConfirmNo, 
             function()
-                -- 確認：停止運行並載入指定腳本
                 stopAllRoutines()
                 if playerGui:FindFirstChild("MultiDriveGui") then playerGui.MultiDriveGui:Destroy() end
                 if CoreGui:FindFirstChild("KrisVanLangSelector") then CoreGui.KrisVanLangSelector:Destroy() end
@@ -1127,9 +1420,7 @@ runMainScript = function(selectedLanguage)
                     loadstring(game:HttpGet("https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanOpmenu.lua"))()
                 end)
             end, 
-            function()
-                -- 取消：什麼都不做，繼續留在當前腳本
-            end
+            function() end
         )
     end)
 
@@ -1150,7 +1441,7 @@ runMainScript = function(selectedLanguage)
         if isAntiAfkEnabled and tick() % 30 < 0.1 then
             pcall(function()
                 VirtualUser:Button1Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-                VirtualUser:Button1Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                VirtualUser:Button1Up(Vector2.new(0,0), workspace.CurrentCamera.CFree)
             end)
         end
     end))
