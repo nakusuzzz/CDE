@@ -1,5 +1,5 @@
 --[[
-	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v3.3.6 (Extended Wait Before Fade-Out)
+	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v3.3.7 (Added Return Menu Option)
 ]]
 
 local Players = game:GetService("Players")
@@ -73,14 +73,12 @@ local function playStartupLoadingScreen(onFinished)
     loadGui.IgnoreGuiInset = true
     loadGui.Parent = CoreGui
 
-    -- 半透明背景（初始透明度設為 1，準備淡入）
     local mainFrame = Instance.new("Frame", loadGui)
     mainFrame.Size = UDim2.new(1, 0, 1, 0)
     mainFrame.BackgroundColor3 = Color3.fromRGB(10, 8, 15)
     mainFrame.BackgroundTransparency = 1
     mainFrame.BorderSizePixel = 0
 
-    -- 中心發光脈衝背景圓暈
     local pulseGlow = Instance.new("Frame", mainFrame)
     pulseGlow.Size = UDim2.new(0, 260, 0, 260)
     pulseGlow.Position = UDim2.new(0.5, -130, 0.5, -150)
@@ -88,7 +86,6 @@ local function playStartupLoadingScreen(onFinished)
     pulseGlow.BackgroundTransparency = 1
     Instance.new("UICorner", pulseGlow).CornerRadius = UDim.new(1, 0)
 
-    -- 環形外框
     local ringOuter = Instance.new("Frame", mainFrame)
     ringOuter.Size = UDim2.new(0, 110, 0, 110)
     ringOuter.Position = UDim2.new(0.5, -55, 0.5, -75)
@@ -100,7 +97,6 @@ local function playStartupLoadingScreen(onFinished)
     ringStroke.Thickness = 3
     ringStroke.Transparency = 1
 
-    -- 內圈實心點綴
     local ringInner = Instance.new("Frame", ringOuter)
     ringInner.Size = UDim2.new(0, 70, 0, 70)
     ringInner.Position = UDim2.new(0.5, -35, 0.5, -35)
@@ -113,7 +109,6 @@ local function playStartupLoadingScreen(onFinished)
     innerStroke.Thickness = 1.5
     innerStroke.Transparency = 1
 
-    -- 標題文字
     local titleLabel = Instance.new("TextLabel", mainFrame)
     titleLabel.Size = UDim2.new(0, 400, 0, 50)
     titleLabel.Position = UDim2.new(0.5, -200, 0.5, 25)
@@ -136,12 +131,9 @@ local function playStartupLoadingScreen(onFinished)
     subTitle.TextTransparency = 1
     subTitle.TextXAlignment = Enum.TextXAlignment.Center
 
-    -- 動態轉場與動畫控制
     task.spawn(function()
-        -- 1. 先等待 1 秒
         task.wait(1.0)
 
-        -- 2. 執行淡入動畫 (0.5秒)
         local fadeInInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         TweenService:Create(mainFrame, fadeInInfo, {BackgroundTransparency = 0.35}):Play()
         TweenService:Create(pulseGlow, fadeInInfo, {BackgroundTransparency = 0.85}):Play()
@@ -162,16 +154,12 @@ local function playStartupLoadingScreen(onFinished)
             end
         end)
 
-        -- 3. 動畫進行中的顯示時間
         task.wait(1.5)
         subTitle.Text = "READY"
         
-        -- 4. 淡出前額外等待 2 秒
         task.wait(2.0)
-
         active = false
         
-        -- 5. 執行淡出動畫 (0.6秒)
         local fadeOutInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         TweenService:Create(mainFrame, fadeOutInfo, {BackgroundTransparency = 1}):Play()
         TweenService:Create(pulseGlow, fadeOutInfo, {BackgroundTransparency = 1}):Play()
@@ -184,7 +172,6 @@ local function playStartupLoadingScreen(onFinished)
         task.wait(0.6)
         loadGui:Destroy()
 
-        -- 動畫完全結束後，叫出語言選擇與主介面
         if onFinished then onFinished() end
     end)
 end
@@ -342,7 +329,7 @@ runMainScript = function(selectedLanguage)
     local L = {}
     if selectedLanguage == "ZH" then
         L = {
-            Title = "⚔️ KrisVan 遊戲輔助 v3.3.6",
+            Title = "⚔️ KrisVan 遊戲輔助 v3.3.7",
             Tab0 = "👤 作者資訊",
             TabLog = "📋 更新日誌",
             Tab1 = "🚗 自動駕駛",
@@ -358,16 +345,19 @@ runMainScript = function(selectedLanguage)
             InfJump = "跳躍無冷卻 (無限跳)",
             AntiAfk = "防掛機保護",
             LangBtn = "🌐 切換語言",
+            ReturnMenuBtn = "🏠 返回遊戲選單",
+            ReturnConfirmTitle = "🏠 返回選單確認",
+            ReturnConfirmMsg = "是否返回遊戲選單？",
+            ConfirmYes = "是",
+            ConfirmNo = "否",
             StatusRunning = "狀態: 運行中",
             StatusStopped = "狀態: 已停止",
             ConfirmTitle = "⚠️ 關閉確認",
-            ConfirmMsg = "確定要關閉輔助腳本嗎？",
-            ConfirmYes = "是",
-            ConfirmNo = "否"
+            ConfirmMsg = "確定要關閉輔助腳本嗎？"
         }
     elseif selectedLanguage == "CN" then
         L = {
-            Title = "⚔️ KrisVan 游戏辅助 v3.3.6",
+            Title = "⚔️ KrisVan 游戏辅助 v3.3.7",
             Tab0 = "👤 作者信息",
             TabLog = "📋 更新日志",
             Tab1 = "🚗 自动驾驶",
@@ -383,16 +373,19 @@ runMainScript = function(selectedLanguage)
             InfJump = "跳跃无冷却 (无限跳)",
             AntiAfk = "防挂机保护",
             LangBtn = "🌐 切换语言",
+            ReturnMenuBtn = "🏠 返回游戏菜单",
+            ReturnConfirmTitle = "🏠 返回菜单确认",
+            ReturnConfirmMsg = "是否返回游戏菜单？",
+            ConfirmYes = "是",
+            ConfirmNo = "否",
             StatusRunning = "状态: 运行中",
             StatusStopped = "状态: 已停止",
             ConfirmTitle = "⚠️ 关闭确认",
-            ConfirmMsg = "确定要关闭辅助脚本吗？",
-            ConfirmYes = "是",
-            ConfirmNo = "否"
+            ConfirmMsg = "确定要关闭辅助脚本吗？"
         }
     else
         L = {
-            Title = "⚔️ KrisVan Script v3.3.6",
+            Title = "⚔️ KrisVan Script v3.3.7",
             Tab0 = "👤 Author",
             TabLog = "📋 Changelog",
             Tab1 = "🚗 Auto Drive",
@@ -408,12 +401,15 @@ runMainScript = function(selectedLanguage)
             InfJump = "Infinite Jump",
             AntiAfk = "Anti-AFK Protection",
             LangBtn = "🌐 Change Lang",
+            ReturnMenuBtn = "🏠 Return Menu",
+            ReturnConfirmTitle = "🏠 Return Menu Confirm",
+            ReturnConfirmMsg = "Return to game menu?",
+            ConfirmYes = "Yes",
+            ConfirmNo = "No",
             StatusRunning = "Status: Running",
             StatusStopped = "Status: Stopped",
             ConfirmTitle = "⚠️ Confirm Close",
-            ConfirmMsg = "Are you sure to close script?",
-            ConfirmYes = "Yes",
-            ConfirmNo = "No"
+            ConfirmMsg = "Are you sure to close script?"
         }
     end
 
@@ -631,7 +627,7 @@ runMainScript = function(selectedLanguage)
     setupPanel(panelLog, 520)
     setupPanel(panel1, 200)
     setupPanel(panel2, 250)
-    setupPanel(panel3, 310)
+    setupPanel(panel3, 360) -- 調整面板高度以容納新按鈕
 
     local function createTabButton(name, yPos)
         local btn = Instance.new("TextButton", sidebar)
@@ -737,10 +733,10 @@ runMainScript = function(selectedLanguage)
         return containerFrame
     end
 
-    createAccordionVersion("[v3.3.6]", "• 載入動畫於淡出前增設 2 秒等待時間，整體過場更流暢自然！", true, 50)
-    createAccordionVersion("[v3.3.5]", "• 載入動畫已新增 1 秒等待時間，並支援流暢的淡入與淡出特效！", false, 142)
-    createAccordionVersion("[v3.3.4]", "• 套用半透明霓虹環形載入動畫與自訂圖片按鈕。", false, 234)
-    createAccordionVersion("[v3.3.3]", "• 修復自訂圖片 ID 無法正常顯示的問題。", false, 326)
+    createAccordionVersion("[v3.3.7]", "• 新增「返回遊戲選單」功能按鈕與二次確認彈窗，操作更具彈性！", true, 50)
+    createAccordionVersion("[v3.3.6]", "• 載入動畫於淡出前增設 2 秒等待時間，整體過場更流暢自然！", false, 142)
+    createAccordionVersion("[v3.3.5]", "• 載入動畫已新增 1 秒等待時間，並支援流暢的淡入與淡出特效！", false, 234)
+    createAccordionVersion("[v3.3.4]", "• 套用半透明霓虹環形載入動畫與自訂圖片按鈕。", false, 326)
 
     local adDesc = Instance.new("TextLabel", panel1)
     adDesc.Size = UDim2.new(1, -24, 0, 30)
@@ -1065,7 +1061,8 @@ runMainScript = function(selectedLanguage)
 
     local infiniteJumpBtn = createGenericButton(L.InfJump .. " : " .. L.SwitchOff, 142, Color3.fromRGB(35, 35, 48))
     local afkBtn = createGenericButton(L.AntiAfk .. " : " .. L.SwitchOff, 188, Color3.fromRGB(35, 35, 48))
-    local changeLangBtn = createGenericButton(L.LangBtn, 234, Color3.fromRGB(110, 35, 160))
+    local returnMenuBtn = createGenericButton(L.ReturnMenuBtn, 234, Color3.fromRGB(180, 80, 35))
+    local changeLangBtn = createGenericButton(L.LangBtn, 280, Color3.fromRGB(110, 35, 160))
 
     walkSpeedToggleBtn.Activated:Connect(function()
         isWalkSpeedEnabled = not isWalkSpeedEnabled
@@ -1093,6 +1090,27 @@ runMainScript = function(selectedLanguage)
         afkBtn.Text = L.AntiAfk .. " : " .. (isAntiAfkEnabled and L.SwitchOn or L.SwitchOff)
         afkBtn.BackgroundColor3 = isAntiAfkEnabled and Color3.fromRGB(130, 40, 190) or Color3.fromRGB(35, 35, 48)
         afkBtn.BackgroundTransparency = isAntiAfkEnabled and 0.15 or 0.25
+    end)
+
+    -- 返回遊戲選單按鈕邏輯與二次確認彈窗
+    returnMenuBtn.Activated:Connect(function()
+        showConfirmDialog(
+            L.ReturnConfirmTitle,
+            L.ReturnConfirmMsg,
+            L.ConfirmYes,
+            L.ConfirmNo,
+            function()
+                -- 確認：關閉目前所有行程與介面，並載入選單腳本
+                stopAllRoutines()
+                if playerGui:FindFirstChild("MultiDriveGui") then playerGui.MultiDriveGui:Destroy() end
+                pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanOpmenu.lua"))()
+                end)
+            end,
+            function()
+                -- 取消：什麼都不做，直接返回目前使用的腳本
+            end
+        )
     end)
 
     changeLangBtn.Activated:Connect(function() showLanguageSelector() end)
@@ -1125,3 +1143,4 @@ end
 playStartupLoadingScreen(function()
     showLanguageSelector()
 end)
+
