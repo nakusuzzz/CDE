@@ -1,6 +1,6 @@
 --[[
-	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.1.5
-	[Modified: Fixed changelog UI overlapping bug, bumped version to v1.1.5]
+	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.1.6
+	[Modified: Added return to menu button with confirmation prompt, bumped version to v1.1.6]
 ]]
 
 local Players = game:GetService("Players")
@@ -90,7 +90,7 @@ local function playStartupLoadingScreen(onFinished)
     titleLabel.Size = UDim2.new(0, 400, 0, 50)
     titleLabel.Position = UDim2.new(0.5, -200, 0.5, 25)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "KrisVan Script"
+    titleLabel.Text = "KrisVan Script v1.1.6"
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 32
     titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -306,7 +306,7 @@ runMainScript = function(selectedLanguage)
     local L = {}
     if selectedLanguage == "ZH" then
         L = {
-            Title = "⚔️ KrisVan 遊戲輔助 v1.1.5",
+            Title = "⚔️ KrisVan 遊戲輔助 v1.1.6",
             Tab0 = "👤 作者資訊",
             TabLog = "📋 更新日誌",
             TabCar = "🚗 車輛極速",
@@ -317,6 +317,7 @@ runMainScript = function(selectedLanguage)
             LogHeader = "[📋 更新日誌 📋]",
             LogClickHint = " (點擊展開/收合)",
             Logs = {
+                {version = "v1.1.6", details = "• 新增返回遊戲選單按鈕與二次確認彈窗功能\n• 優化其他設定面板排版與畫布大小"},
                 {version = "v1.1.5", details = "• 修復更新日誌介面文字擠壓與排版跑版 Bug\n• 優化展開收合時的動畫流暢度與穩定性"},
                 {version = "v1.1.4", details = "• 修正並同步版本號至 v1.1.4\n• 優化各項功能執行流暢度與穩定性"},
                 {version = "v1.1.2", details = "• 新增車輛極速修改功能\n• 調整車輛加速度為 100\n• 修正並同步版本號至 v1.1.2"},
@@ -330,14 +331,17 @@ runMainScript = function(selectedLanguage)
             InfJump = "跳躍無冷卻 (無限跳)",
             AntiAfk = "防掛機保護",
             LangBtn = "🌐 切換語言",
-            ConfirmTitle = "⚠️ 關閉確認",
-            ConfirmMsg = "確定要關閉輔助腳本嗎？",
-            ConfirmYes = "是",
-            ConfirmNo = "否"
+            MenuBtn = "🏠 返回遊戲選單",
+            MenuConfirmTitle = "⚠️ 返回確認",
+            MenuConfirmMsg = "是否返回遊戲選單？",
+            ConfirmYes = "確認",
+            ConfirmNo = "取消",
+            ScriptConfirmTitle = "⚠️ 關閉確認",
+            ScriptConfirmMsg = "確定要關閉輔助腳本嗎？"
         }
     elseif selectedLanguage == "CN" then
         L = {
-            Title = "⚔️ KrisVan 游戏辅助 v1.1.5",
+            Title = "⚔️ KrisVan 游戏辅助 v1.1.6",
             Tab0 = "👤 作者信息",
             TabLog = "📋 更新日志",
             TabCar = "🚗 车辆极速",
@@ -348,6 +352,7 @@ runMainScript = function(selectedLanguage)
             LogHeader = "[📋 更新日志 📋]",
             LogClickHint = " (点击展开/收合)",
             Logs = {
+                {version = "v1.1.6", details = "• 新增返回游戏菜单按钮与二次确认弹窗功能\n• 优化其他设定面板排版与画布大小"},
                 {version = "v1.1.5", details = "• 修复更新日志界面文字挤压与排版错位 Bug\n• 优化展开收合时的动画流畅度与稳定性"},
                 {version = "v1.1.4", details = "• 修正并同步版本号至 v1.1.4\n• 优化各项功能执行流畅度与稳定性"},
                 {version = "v1.1.2", details = "• 新增车辆极速修改功能\n• 调整车辆加速度为 100\n• 修正并同步版本号至 v1.1.2"},
@@ -361,14 +366,17 @@ runMainScript = function(selectedLanguage)
             InfJump = "跳跃无冷却 (无限跳)",
             AntiAfk = "防挂机保护",
             LangBtn = "🌐 切换语言",
-            ConfirmTitle = "⚠️ 关闭确认",
-            ConfirmMsg = "确定要关闭辅助脚本吗？",
-            ConfirmYes = "是",
-            ConfirmNo = "否"
+            MenuBtn = "🏠 返回游戏菜单",
+            MenuConfirmTitle = "⚠️ 返回确认",
+            MenuConfirmMsg = "是否返回游戏菜单？",
+            ConfirmYes = "确认",
+            ConfirmNo = "取消",
+            ScriptConfirmTitle = "⚠️ 关闭确认",
+            ScriptConfirmMsg = "确定要关闭辅助脚本吗？"
         }
     else
         L = {
-            Title = "⚔️ KrisVan Script v1.1.5",
+            Title = "⚔️ KrisVan Script v1.1.6",
             Tab0 = "👤 Author",
             TabLog = "📋 Changelog",
             TabCar = "🚗 Car Speed",
@@ -379,6 +387,7 @@ runMainScript = function(selectedLanguage)
             LogHeader = "[📋 Changelog 📋]",
             LogClickHint = " (Click to toggle)",
             Logs = {
+                {version = "v1.1.6", details = "• Added return to game menu button with confirmation prompt\n• Optimized settings panel layout and canvas size"},
                 {version = "v1.1.5", details = "• Fixed changelog UI text overlapping and layout bugs\n• Optimized expansion animation smoothness"},
                 {version = "v1.1.4", details = "• Synced version to v1.1.4\n• Optimized overall stability and performance"},
                 {version = "v1.1.2", details = "• Added vehicle speed modifier feature\n• Adjusted vehicle acceleration to 100\n• Synced version to v1.1.2"},
@@ -392,10 +401,13 @@ runMainScript = function(selectedLanguage)
             InfJump = "Infinite Jump",
             AntiAfk = "Anti-AFK Protection",
             LangBtn = "🌐 Change Lang",
-            ConfirmTitle = "⚠️ Confirm Close",
-            ConfirmMsg = "Are you sure to close script?",
-            ConfirmYes = "Yes",
-            ConfirmNo = "No"
+            MenuBtn = "🏠 Return to Menu",
+            MenuConfirmTitle = "⚠️ Return Confirm",
+            MenuConfirmMsg = "Return to game menu?",
+            ConfirmYes = "Confirm",
+            ConfirmNo = "Cancel",
+            ScriptConfirmTitle = "⚠️ Confirm Close",
+            ScriptConfirmMsg = "Are you sure to close script?"
         }
     end
 
@@ -476,7 +488,7 @@ runMainScript = function(selectedLanguage)
     closeScriptBtn.TextColor3 = Color3.fromRGB(220, 80, 80)
 
     closeScriptBtn.Activated:Connect(function()
-        showConfirmDialog(L.ConfirmTitle, L.ConfirmMsg, L.ConfirmYes, L.ConfirmNo, function()
+        showConfirmDialog(L.ScriptConfirmTitle, L.ScriptConfirmMsg, "是", "否", function()
             stopAllRoutines()
             if playerGui:FindFirstChild("MultiDriveGui") then playerGui.MultiDriveGui:Destroy() end
         end, nil)
@@ -609,9 +621,9 @@ runMainScript = function(selectedLanguage)
         p.Visible = false
     end
     setupPanel(panel0, 260)
-    setupPanel(panelLog, 520) -- 增加畫布高度以容納展開後的內容，避免擠壓
+    setupPanel(panelLog, 600) -- 配合新增的日誌項目適度加大畫布
     setupPanel(panelCar, 260)
-    setupPanel(panel1, 310)
+    setupPanel(panel1, 350)
 
     local function createTabButton(name, yPos)
         local btn = Instance.new("TextButton", sidebar)
@@ -665,7 +677,7 @@ runMainScript = function(selectedLanguage)
     authorLabel.TextYAlignment = Enum.TextYAlignment.Top
     authorLabel.TextWrapped = true
 
-    -- Panel Log (更新日誌 - 採用絕對定位與動態更新佈局，徹底解決重疊擠壓問題)
+    -- Panel Log (更新日誌)
     local logHeaderTitle = Instance.new("TextLabel", panelLog)
     logHeaderTitle.Size = UDim2.new(1, -24, 0, 30)
     logHeaderTitle.Position = UDim2.new(0, 12, 0, 10)
@@ -683,7 +695,7 @@ runMainScript = function(selectedLanguage)
             info.frame.Position = UDim2.new(0, 12, 0, currentY)
             local currentHeight = info.isExpanded and 115 or 38
             info.frame.Size = UDim2.new(1, -24, 0, currentHeight)
-            currentY = currentY + currentHeight + 8 -- 間距 8 像素，絕不重疊
+            currentY = currentY + currentHeight + 8
         end
         panelLog.CanvasSize = UDim2.new(0, 0, 0, currentY + 20)
     end
@@ -725,7 +737,6 @@ runMainScript = function(selectedLanguage)
             local targetHeight = logInfo.isExpanded and 115 or 38
             TweenService:Create(itemFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -24, 0, targetHeight)}):Play()
             
-            -- 動畫執行 同步更新下方項目的位置
             task.spawn(function()
                 task.wait(0.28)
                 updateLogLayout()
@@ -849,6 +860,7 @@ runMainScript = function(selectedLanguage)
     local infiniteJumpBtn = createGenericButton(L.InfJump .. " : " .. L.SwitchOff, 142, Color3.fromRGB(35, 35, 48))
     local afkBtn = createGenericButton(L.AntiAfk .. " : " .. L.SwitchOff, 188, Color3.fromRGB(35, 35, 48))
     local changeLangBtn = createGenericButton(L.LangBtn, 234, Color3.fromRGB(110, 35, 160))
+    local returnMenuBtn = createGenericButton(L.MenuBtn, 280, Color3.fromRGB(160, 80, 35))
 
     walkSpeedToggleBtn.Activated:Connect(function()
         isWalkSpeedEnabled = not isWalkSpeedEnabled
@@ -879,6 +891,24 @@ runMainScript = function(selectedLanguage)
     end)
 
     changeLangBtn.Activated:Connect(function() showLanguageSelector() end)
+
+    returnMenuBtn.Activated:Connect(function()
+        showConfirmDialog(
+            L.MenuConfirmTitle, 
+            L.MenuConfirmMsg, 
+            L.ConfirmYes, 
+            L.ConfirmNo, 
+            function()
+                stopAllRoutines()
+                if playerGui:FindFirstChild("MultiDriveGui") then playerGui.MultiDriveGui:Destroy() end
+                if CoreGui:FindFirstChild("KrisVanLangSelector") then CoreGui.KrisVanLangSelector:Destroy() end
+                
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanOpmenu.lua"))()
+            end, 
+            function()
+            end
+        )
+    end)
 
     table.insert(activeConnections, UserInputService.JumpRequest:Connect(function()
         if isInfiniteJumpEnabled then
@@ -932,3 +962,4 @@ end
 playStartupLoadingScreen(function()
     showLanguageSelector()
 end)
+
