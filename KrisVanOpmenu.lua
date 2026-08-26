@@ -15,7 +15,7 @@ local translations = {
         drivingEmpire = "駕駛帝國",
         carDealership = "汽車經銷商大亨",
         mm2 = "誰是殺手2",
-        confirmText = "⚠️ 再按一次確認執行！",
+        scriptConfirmDesc = "是否確定要執行此腳本？",
         backText = "返回語言選擇",
         closeTitle = "提示",
         closeDesc = "是否要關閉腳本選單？",
@@ -28,7 +28,7 @@ local translations = {
         drivingEmpire = "驾驶帝国",
         carDealership = "汽车经销商大亨",
         mm2 = "谁是杀手2",
-        confirmText = "⚠️ 再按一次确认执行！",
+        scriptConfirmDesc = "是否确定要执行此脚本？",
         backText = "返回语言选择",
         closeTitle = "提示",
         closeDesc = "是否要关闭脚本菜单？",
@@ -41,7 +41,7 @@ local translations = {
         drivingEmpire = "Driving Empire",
         carDealership = "Car Dealership Tycoon",
         mm2 = "Murder Mystery 2",
-        confirmText = "⚠️ Click again to confirm!",
+        scriptConfirmDesc = "Are you sure you want to run this script?",
         backText = "Back to Language",
         closeTitle = "Notice",
         closeDesc = "Do you want to close the script menu?",
@@ -148,7 +148,11 @@ ScriptsPage.Visible = false
 -- 宣告 UI 參考變數
 local btn1, btn2, btn3, BackBtn
 
--- 建立腳本按鈕的函數 (帶雙重確認)
+-- 宣告共用的確認彈窗變數
+local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
+local pendingUrl = nil -- 用來暫存準備執行的網址
+
+-- 建立腳本按鈕的函數 (改為點擊時開啟彈窗)
 local function createScriptBtn(nameKey, posY, url)
     local btn = Instance.new("TextButton")
     btn.Name = nameKey
@@ -165,25 +169,12 @@ local function createScriptBtn(nameKey, posY, url)
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = btn
     
-    local isConfirming = false
-    
     btn.MouseButton1Click:Connect(function()
-        if not isConfirming then
-            isConfirming = true
-            btn.BackgroundColor3 = Color3.fromRGB(180, 50, 50) -- 變紅警示
-            btn.Text = translations[currentLang].confirmText
-            
-            task.delay(3, function()
-                if isConfirming and btn and btn.Parent then
-                    isConfirming = false
-                    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-                    btn.Text = translations[currentLang][nameKey]
-                end
-            end)
-        else
-            ScreenGui:Destroy()
-            pcall(function() loadstring(game:HttpGet(url))() end)
-        end
+        pendingUrl = url
+        DialogText.Text = translations[currentLang].scriptConfirmDesc
+        YesBtn.Text = translations[currentLang].btnConfirm
+        NoBtn.Text = translations[currentLang].btnCancel
+        ConfirmOverlay.Visible = true
     end)
     
     return btn
@@ -249,8 +240,8 @@ createLangSelectBtn("zh-TW", "繁體中文", 50)
 createLangSelectBtn("zh-CN", "简体中文", 110)
 createLangSelectBtn("en", "English", 170)
 
--- 二次確認彈窗 (用於點擊關閉按鈕時)
-local ConfirmOverlay = Instance.new("Frame")
+-- 二次確認彈窗 (共用)
+ConfirmOverlay = Instance.new("Frame")
 ConfirmOverlay.Name = "ConfirmOverlay"
 ConfirmOverlay.Parent = MainFrame
 ConfirmOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -259,7 +250,7 @@ ConfirmOverlay.Size = UDim2.new(1, 0, 1, 0)
 ConfirmOverlay.Visible = false
 ConfirmOverlay.ZIndex = 10
 
-local DialogBox = Instance.new("Frame")
+DialogBox = Instance.new("Frame")
 DialogBox.Parent = ConfirmOverlay
 DialogBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 DialogBox.Position = UDim2.new(0.5, -130, 0.5, -60)
@@ -268,7 +259,7 @@ DialogBox.ZIndex = 11
 Instance.new("UICorner", DialogBox).CornerRadius = UDim.new(0, 8)
 Instance.new("UIStroke", DialogBox).Color = Color3.fromRGB(150, 75, 230)
 
-local DialogText = Instance.new("TextLabel")
+DialogText = Instance.new("TextLabel")
 DialogText.Parent = DialogBox
 DialogText.BackgroundTransparency = 1
 DialogText.Position = UDim2.new(0, 10, 0, 15)
@@ -279,7 +270,7 @@ DialogText.TextSize = 15
 DialogText.ZIndex = 12
 DialogText.TextWrapped = true
 
-local YesBtn = Instance.new("TextButton")
+YesBtn = Instance.new("TextButton")
 YesBtn.Parent = DialogBox
 YesBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
 YesBtn.Position = UDim2.new(0, 15, 0, 70)
@@ -290,7 +281,7 @@ YesBtn.TextSize = 14
 YesBtn.ZIndex = 12
 Instance.new("UICorner", YesBtn).CornerRadius = UDim.new(0, 6)
 
-local NoBtn = Instance.new("TextButton")
+NoBtn = Instance.new("TextButton")
 NoBtn.Parent = DialogBox
 NoBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
 NoBtn.Position = UDim2.new(1, -120, 0, 70)
@@ -301,22 +292,30 @@ NoBtn.TextSize = 14
 NoBtn.ZIndex = 12
 Instance.new("UICorner", NoBtn).CornerRadius = UDim.new(0, 6)
 
--- 點擊關閉按鈕時彈出二次確認窗
+-- 點擊關閉按鈕時彈出關閉確認窗
 CloseBtn.MouseButton1Click:Connect(function()
+    pendingUrl = nil -- 清空待執行網址，代表這是要關閉介面
     DialogText.Text = translations[currentLang].closeDesc
     YesBtn.Text = translations[currentLang].btnConfirm
     NoBtn.Text = translations[currentLang].btnCancel
     ConfirmOverlay.Visible = true
 end)
 
--- 確定關閉
+-- 確定按鈕 (根據 pendingUrl 來判斷是要執行腳本還是關閉介面)
 YesBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
+    if pendingUrl then
+        local urlToRun = pendingUrl
+        ScreenGui:Destroy()
+        pcall(function() loadstring(game:HttpGet(urlToRun))() end)
+    else
+        ScreenGui:Destroy()
+    end
 end)
 
--- 取消關閉（返回選擇腳本頁面，或保持當前頁面）
+-- 取消按鈕
 NoBtn.MouseButton1Click:Connect(function()
     ConfirmOverlay.Visible = false
+    pendingUrl = nil
 end)
 
 -- 拖動功能
