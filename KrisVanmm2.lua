@@ -1,6 +1,6 @@
 --[[
-	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.1.1
-	[Modified: Updated version to v1.1.1 & fixed Auto Farm panel UI overlapping / layout bug]
+	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.1.2
+	[Modified: Added Return to Menu button with confirmation dialog in Settings tab]
 ]]
 
 local Players = game:GetService("Players")
@@ -115,7 +115,7 @@ local function playStartupLoadingScreen(onFinished)
     titleLabel.Size = UDim2.new(0, 400, 0, 50)
     titleLabel.Position = UDim2.new(0.5, -200, 0.5, 25)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "KrisVan Script v1.1.1"
+    titleLabel.Text = "KrisVan Script"
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 32
     titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -331,7 +331,7 @@ runMainScript = function(selectedLanguage)
     local L = {}
     if selectedLanguage == "ZH" then
         L = {
-            Title = "⚔️ KrisVan 遊戲輔助 v1.1.1",
+            Title = "⚔️ KrisVan 遊戲輔助 v1.1.2",
             Tab0 = "👤 作者資訊",
             TabLog = "📋 更新日誌",
             TabFarm = "💎 自動收集",
@@ -340,9 +340,10 @@ runMainScript = function(selectedLanguage)
             SwitchOff = "關閉",
             SwitchOn = "開啟",
             AuthorContent = "【 作者資訊 】\n• 作者 / 開發者：KrisVan\n• 功能：專為 Roblox 打造的強大輔助介面。\n• 感謝您的使用與支持！",
-            LogHeader = "[📋 更新日誌 (v1.1.1 修復) 📋]",
+            LogHeader = "[📋 更新日誌 (v1.1.2 更新) 📋]",
             LogClickHint = " (點擊展開/收合)",
             Logs = {
+                {version = "v1.1.2 (返回選單功能)", details = "• 新增「返回遊戲選單」按鈕與二次確認彈窗，支援快速切換回主選單。"},
                 {version = "v1.1.1 (UI Bug 修復)", details = "• 修復了自動收集分頁介面排版錯位、開關被遮擋的 UI 顯示錯誤問題。\n• 優化各個控制項在不同螢幕解析度下的適應性。"},
                 {version = "v1.1.0 (中型更新)", details = "• 新增功能 1：智慧路徑躲避系統，最佳化自動收集金幣時的移動邏輯，減少卡牆機率。\n• 新增功能 2：全景準星與武器狀態 HUD，即時顯示當前角色持有武器與輔助瞄準提示。"},
                 {version = "v1.0.0", details = "• KrisVan 遊戲輔助正式發布\n• 內建 MM2 自動收集、玩家透視、移動速度、跳躍高度、無限跳與防掛機功能"}
@@ -352,6 +353,9 @@ runMainScript = function(selectedLanguage)
             InfJump = "跳躍無冷卻 (無限跳)",
             AntiAfk = "防掛機保護",
             LangBtn = "🌐 切換語言",
+            ReturnMenuBtn = "🏠 返回遊戲選單",
+            ReturnMenuTitle = "⚠️ 返回確認",
+            ReturnMenuMsg = "是否返回遊戲選單？",
             ConfirmTitle = "⚠️ 關閉確認",
             ConfirmMsg = "確定要關閉輔助腳本嗎？",
             ConfirmYes = "是",
@@ -359,7 +363,7 @@ runMainScript = function(selectedLanguage)
         }
     elseif selectedLanguage == "CN" then
         L = {
-            Title = "⚔️ KrisVan 游戏辅助 v1.1.1",
+            Title = "⚔️ KrisVan 游戏辅助 v1.1.2",
             Tab0 = "👤 作者信息",
             TabLog = "📋 更新日志",
             TabFarm = "💎 自动收集",
@@ -368,9 +372,10 @@ runMainScript = function(selectedLanguage)
             SwitchOff = "关闭",
             SwitchOn = "开启",
             AuthorContent = "【 作者信息 】\n• 作者 / 开发者：KrisVan\n• 功能：专为 Roblox 打造的强大辅助界面。\n• 感谢您的使用与支持！",
-            LogHeader = "[📋 更新日志 (v1.1.1 修复) 📋]",
+            LogHeader = "[📋 更新日志 (v1.1.2 更新) 📋]",
             LogClickHint = " (点击展开/收合)",
             Logs = {
+                {version = "v1.1.2 (返回菜单功能)", details = "• 新增“返回游戏菜单”按钮与二次确认弹窗，支持快速切换回主菜单。"},
                 {version = "v1.1.1 (UI Bug 修复)", details = "• 修复了自动收集分页界面排版错位、开关被遮挡的 UI 显示错误问题。\n• 优化各个控件在不同屏幕分辨率下的适应性。"},
                 {version = "v1.1.0 (中型更新)", details = "• 新增功能 1：智能路径躲避系统，优化自动收集金币时的移动逻辑，减少卡墙几率。\n• 新增功能 2：全景准星与武器状态 HUD，实时显示当前角色持有武器与辅助瞄准提示。"},
                 {version = "v1.0.0", details = "• KrisVan 游戏辅助正式发布\n• 内置 MM2 自动收集、玩家透视、移动速度、跳跃高度、无限跳与防挂机功能"}
@@ -380,6 +385,9 @@ runMainScript = function(selectedLanguage)
             InfJump = "跳跃无冷却 (无限跳)",
             AntiAfk = "防挂机保护",
             LangBtn = "🌐 切换语言",
+            ReturnMenuBtn = "🏠 返回游戏菜单",
+            ReturnMenuTitle = "⚠️ 返回确认",
+            ReturnMenuMsg = "是否返回游戏菜单？",
             ConfirmTitle = "⚠️ 关闭确认",
             ConfirmMsg = "确定要关闭辅助脚本吗？",
             ConfirmYes = "是",
@@ -387,7 +395,7 @@ runMainScript = function(selectedLanguage)
         }
     else
         L = {
-            Title = "⚔️ KrisVan Script v1.1.1",
+            Title = "⚔️ KrisVan Script v1.1.2",
             Tab0 = "👤 Author",
             TabLog = "📋 Changelog",
             TabFarm = "💎 Auto Farm",
@@ -396,9 +404,10 @@ runMainScript = function(selectedLanguage)
             SwitchOff = "OFF",
             SwitchOn = "ON",
             AuthorContent = "[ Author Information ]\n• Author: KrisVan\n• Description: Advanced utility script for Roblox.\n• Thank you for using!",
-            LogHeader = "[📋 Changelog (v1.1.1 Fix) 📋]",
+            LogHeader = "[📋 Changelog (v1.1.2 Update) 📋]",
             LogClickHint = " (Click to toggle)",
             Logs = {
+                {version = "v1.1.2 (Return Menu Feature)", details = "• Added Return to Menu button with confirmation dialog for quick navigation."},
                 {version = "v1.1.1 (UI Bug Fix)", details = "• Fixed Auto Farm panel UI layout overlapping and button clipping issues.\n• Improved control responsiveness across various resolutions."},
                 {version = "v1.1.0 (Medium Update)", details = "• New Feature 1: Smart Obstacle Avoidance system, optimizing auto-farm movement logic to reduce wall clipping.\n• New Feature 2: Crosshair & Weapon Status HUD, displaying real-time weapon equipment and aiming assistance."},
                 {version = "v1.0.0", details = "• Official release of KrisVan Script\n• Added MM2 Auto Farm, ESP, walkspeed, jumppower, infinite jump & anti-afk features"}
@@ -408,6 +417,9 @@ runMainScript = function(selectedLanguage)
             InfJump = "Infinite Jump",
             AntiAfk = "Anti-AFK Protection",
             LangBtn = "🌐 Change Lang",
+            ReturnMenuBtn = "🏠 Return to Menu",
+            ReturnMenuTitle = "⚠️ Return Confirm",
+            ReturnMenuMsg = "Return to game menu?",
             ConfirmTitle = "⚠️ Confirm Close",
             ConfirmMsg = "Are you sure to close script?",
             ConfirmYes = "Yes",
@@ -629,7 +641,7 @@ runMainScript = function(selectedLanguage)
     setupPanel(panelLog, 620)
     setupPanel(panelFarm, 260)
     setupPanel(panelESP, 220)
-    setupPanel(panel1, 310)
+    setupPanel(panel1, 360) -- 調整高度以容納新增的按鈕
 
     local function createTabButton(name, yPos)
         local btn = Instance.new("TextButton", sidebar)
@@ -755,7 +767,7 @@ runMainScript = function(selectedLanguage)
     updateLogLayout()
 
     -- ==========================================
-    -- Panel Farm (自動收集) [已修正排版與位移]
+    -- Panel Farm (自動收集)
     -- ==========================================
     panelFarm.Parent = contentArea
 
@@ -791,7 +803,7 @@ runMainScript = function(selectedLanguage)
 
     local farmToggleBtn = Instance.new("TextButton", panelFarm)
     farmToggleBtn.Size = UDim2.new(1, -24, 0, 38)
-    farmToggleBtn.Position = UDim2.new(0, 12, 0, 12) -- 確保在畫面正上方適當位置
+    farmToggleBtn.Position = UDim2.new(0, 12, 0, 12)
     farmToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
     farmToggleBtn.BackgroundTransparency = 0.25
     farmToggleBtn.Text = "💎 自動收集金幣 : " .. L.SwitchOff
@@ -858,7 +870,7 @@ runMainScript = function(selectedLanguage)
                     end
 
                     if closest then
-                        hum:ChangeState(11) -- PlatformStand
+                        hum:ChangeState(11)
                         local duration = minDist / 27
                         local t = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), {CFrame = closest.CFrame})
                         t:Play()
@@ -951,11 +963,11 @@ runMainScript = function(selectedLanguage)
                     hl.Name = "RoleHighlight"
                 end
                 
-                local col = Color3.new(0, 1, 0) -- 平民 (綠)
+                local col = Color3.new(0, 1, 0)
                 if role == "Murderer" then 
-                    col = Color3.new(1, 0, 0) -- 殺手 (紅)
+                    col = Color3.new(1, 0, 0)
                 elseif role == "Sheriff" then 
-                    col = Color3.new(0, 0, 1) -- 警長 (藍)
+                    col = Color3.new(0, 0, 1)
                 end
                 c.RoleHighlight.FillColor = col
             end
@@ -1068,6 +1080,7 @@ runMainScript = function(selectedLanguage)
     local infiniteJumpBtn = createGenericButton(L.InfJump .. " : " .. L.SwitchOff, 142, Color3.fromRGB(35, 35, 48))
     local afkBtn = createGenericButton(L.AntiAfk .. " : " .. L.SwitchOff, 188, Color3.fromRGB(35, 35, 48))
     local changeLangBtn = createGenericButton(L.LangBtn, 234, Color3.fromRGB(110, 35, 160))
+    local returnMenuBtn = createGenericButton(L.ReturnMenuBtn, 280, Color3.fromRGB(160, 80, 30))
 
     walkSpeedToggleBtn.Activated:Connect(function()
         isWalkSpeedEnabled = not isWalkSpeedEnabled
@@ -1098,6 +1111,27 @@ runMainScript = function(selectedLanguage)
     end)
 
     changeLangBtn.Activated:Connect(function() showLanguageSelector() end)
+
+    returnMenuBtn.Activated:Connect(function()
+        showConfirmDialog(
+            L.ReturnMenuTitle, 
+            L.ReturnMenuMsg, 
+            L.ConfirmYes, 
+            L.ConfirmNo, 
+            function()
+                -- 確認：停止運行並載入指定腳本
+                stopAllRoutines()
+                if playerGui:FindFirstChild("MultiDriveGui") then playerGui.MultiDriveGui:Destroy() end
+                if CoreGui:FindFirstChild("KrisVanLangSelector") then CoreGui.KrisVanLangSelector:Destroy() end
+                pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanOpmenu.lua"))()
+                end)
+            end, 
+            function()
+                -- 取消：什麼都不做，繼續留在當前腳本
+            end
+        )
+    end)
 
     table.insert(activeConnections, UserInputService.JumpRequest:Connect(function()
         if isInfiniteJumpEnabled then
