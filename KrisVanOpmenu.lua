@@ -7,14 +7,14 @@ end
 -- 當前選擇的語言 ("zh-TW" 繁體中文, "zh-CN" 简体中文, "en" English)
 local currentLang = "zh-TW"
 
--- 設定你的腳本密碼
+-- 設定更新後的腳本密碼
 local scriptPassword = "Krisvanlua_1ojdh8wiwh"
 
 -- 多語言文字字典
 local translations = {
     ["zh-TW"] = {
         title = "KrisVan 遊戲輔助選單 v1.0.3",
-        pwdTitle = "安全驗證",
+        selectLangTitle = "請選擇您的語言 / Please Select Language",
         pwdPrompt = "請輸入執行密碼：",
         pwdPlaceholder = "輸入密碼...",
         pwdError = "❌ 密碼錯誤，請重新輸入！",
@@ -29,7 +29,7 @@ local translations = {
     },
     ["zh-CN"] = {
         title = "KrisVan 游戏辅助选单 v1.0.3",
-        pwdTitle = "安全验证",
+        selectLangTitle = "请选择您的语言 / Please Select Language",
         pwdPrompt = "请输入执行密码：",
         pwdPlaceholder = "输入密码...",
         pwdError = "❌ 密码错误，请重新输入！",
@@ -44,7 +44,7 @@ local translations = {
     },
     ["en"] = {
         title = "KrisVan Game Hub Menu v1.0.3",
-        pwdTitle = "Security Verification",
+        selectLangTitle = "Please Select Language",
         pwdPrompt = "Please enter password:",
         pwdPlaceholder = "Enter password...",
         pwdError = "❌ Incorrect password, try again!",
@@ -118,12 +118,32 @@ Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 10, 0, 42)
 Container.Size = UDim2.new(1, -20, 1, -50)
 
--- 畫面 0：密碼輸入頁面 (預設顯示)
+-- 畫面 1：語言選單頁面 (預設顯示)
+local LangPage = Instance.new("ScrollingFrame")
+LangPage.Name = "LangPage"
+LangPage.Parent = Container
+LangPage.BackgroundTransparency = 1
+LangPage.Size = UDim2.new(1, 0, 1, 0)
+LangPage.CanvasSize = UDim2.new(0, 0, 0, 160)
+LangPage.ScrollBarThickness = 4
+
+local LangPrompt = Instance.new("TextLabel")
+LangPrompt.Name = "LangPrompt"
+LangPrompt.Parent = LangPage
+LangPrompt.BackgroundTransparency = 1
+LangPrompt.Size = UDim2.new(1, 0, 0, 35)
+LangPrompt.Font = Enum.Font.SourceSansBold
+LangPrompt.Text = "請選擇您的語言 / Please Select Language"
+LangPrompt.TextColor3 = Color3.fromRGB(240, 240, 240)
+LangPrompt.TextSize = 15
+
+-- 畫面 2：密碼輸入頁面 (預設隱藏)
 local PasswordPage = Instance.new("Frame")
 PasswordPage.Name = "PasswordPage"
 PasswordPage.Parent = Container
 PasswordPage.BackgroundTransparency = 1
 PasswordPage.Size = UDim2.new(1, 0, 1, 0)
+PasswordPage.Visible = false
 
 local PwdPrompt = Instance.new("TextLabel")
 PwdPrompt.Name = "PwdPrompt"
@@ -177,26 +197,7 @@ PwdSubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 PwdSubmitBtn.TextSize = 16
 Instance.new("UICorner", PwdSubmitBtn).CornerRadius = UDim.new(0, 6)
 
--- 畫面 1：語言選單頁面 (預設隱藏)
-local LangPage = Instance.new("ScrollingFrame")
-LangPage.Name = "LangPage"
-LangPage.Parent = Container
-LangPage.BackgroundTransparency = 1
-LangPage.Size = UDim2.new(1, 0, 1, 0)
-LangPage.CanvasSize = UDim2.new(0, 0, 0, 160)
-LangPage.ScrollBarThickness = 4
-LangPage.Visible = false
-
-local LangPrompt = Instance.new("TextLabel")
-LangPrompt.Parent = LangPage
-LangPrompt.BackgroundTransparency = 1
-LangPrompt.Size = UDim2.new(1, 0, 0, 35)
-LangPrompt.Font = Enum.Font.SourceSansBold
-LangPrompt.Text = "請選擇您的語言 / Please Select Language"
-LangPrompt.TextColor3 = Color3.fromRGB(240, 240, 240)
-LangPrompt.TextSize = 15
-
--- 畫面 2：腳本選單頁面 (預設隱藏)
+-- 畫面 3：腳本選單頁面 (預設隱藏)
 local ScriptsPage = Instance.new("ScrollingFrame")
 ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
@@ -267,6 +268,7 @@ end)
 -- 更新文字內容的函數
 local function updateTexts()
     TitleLabel.Text = translations[currentLang].title
+    LangPrompt.Text = translations[currentLang].selectLangTitle
     PwdPrompt.Text = translations[currentLang].pwdPrompt
     PwdBox.PlaceholderText = translations[currentLang].pwdPlaceholder
     PwdSubmitBtn.Text = translations[currentLang].btnConfirm
@@ -281,7 +283,7 @@ end
 PwdSubmitBtn.MouseButton1Click:Connect(function()
     if PwdBox.Text == scriptPassword then
         PasswordPage.Visible = false
-        LangPage.Visible = true
+        ScriptsPage.Visible = true
     else
         PwdErrorLabel.Text = translations[currentLang].pwdError
         task.delay(2, function()
@@ -292,7 +294,7 @@ PwdSubmitBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 建立語言選擇按鈕
+-- 建立語言選擇按鈕 (選擇後進入密碼頁面)
 local function createLangSelectBtn(langCode, langName, posY)
     local btn = Instance.new("TextButton")
     btn.Parent = LangPage
@@ -313,7 +315,7 @@ local function createLangSelectBtn(langCode, langName, posY)
         currentLang = langCode
         updateTexts()
         LangPage.Visible = false
-        ScriptsPage.Visible = true
+        PasswordPage.Visible = true
     end)
 end
 
@@ -412,3 +414,4 @@ Header.InputEnded:Connect(function(input)
         dragging = false
     end
 end)
+
