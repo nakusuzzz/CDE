@@ -7,11 +7,17 @@ end
 -- 當前選擇的語言 ("zh-TW" 繁體中文, "zh-CN" 简体中文, "en" English)
 local currentLang = "zh-TW"
 
+-- 設定你的腳本密碼
+local scriptPassword = "Krisvanlua_1ojdh8wiwh"
+
 -- 多語言文字字典
 local translations = {
     ["zh-TW"] = {
         title = "KrisVan 遊戲輔助選單 v1.0.3",
-        selectLangTitle = "請選擇您的語言 / Please Select Language",
+        pwdTitle = "安全驗證",
+        pwdPrompt = "請輸入執行密碼：",
+        pwdPlaceholder = "輸入密碼...",
+        pwdError = "❌ 密碼錯誤，請重新輸入！",
         drivingEmpire = "駕駛帝國",
         carDealership = "汽車經銷商大亨",
         mm2 = "誰是殺手2",
@@ -23,7 +29,10 @@ local translations = {
     },
     ["zh-CN"] = {
         title = "KrisVan 游戏辅助选单 v1.0.3",
-        selectLangTitle = "请选择您的语言 / Please Select Language",
+        pwdTitle = "安全验证",
+        pwdPrompt = "请输入执行密码：",
+        pwdPlaceholder = "输入密码...",
+        pwdError = "❌ 密码错误，请重新输入！",
         drivingEmpire = "驾驶帝国",
         carDealership = "汽车经销商大亨",
         mm2 = "谁是杀手2",
@@ -35,7 +44,10 @@ local translations = {
     },
     ["en"] = {
         title = "KrisVan Game Hub Menu v1.0.3",
-        selectLangTitle = "Please Select Language",
+        pwdTitle = "Security Verification",
+        pwdPrompt = "Please enter password:",
+        pwdPlaceholder = "Enter password...",
+        pwdError = "❌ Incorrect password, try again!",
         drivingEmpire = "Driving Empire",
         carDealership = "Car Dealership Tycoon",
         mm2 = "Murder Mystery 2",
@@ -53,7 +65,7 @@ ScreenGui.Name = "DeltaCustomUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- 主視窗框架 (高度縮小至 270，更符合手機螢幕)
+-- 主視窗框架 (高度縮小至 270)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -106,7 +118,66 @@ Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 10, 0, 42)
 Container.Size = UDim2.new(1, -20, 1, -50)
 
--- 畫面 1：語言選單頁面 (改用 ScrollingFrame 支援滑動)
+-- 畫面 0：密碼輸入頁面 (預設顯示)
+local PasswordPage = Instance.new("Frame")
+PasswordPage.Name = "PasswordPage"
+PasswordPage.Parent = Container
+PasswordPage.BackgroundTransparency = 1
+PasswordPage.Size = UDim2.new(1, 0, 1, 0)
+
+local PwdPrompt = Instance.new("TextLabel")
+PwdPrompt.Name = "PwdPrompt"
+PwdPrompt.Parent = PasswordPage
+PwdPrompt.BackgroundTransparency = 1
+PwdPrompt.Position = UDim2.new(0, 0, 0, 20)
+PwdPrompt.Size = UDim2.new(1, 0, 0, 30)
+PwdPrompt.Font = Enum.Font.SourceSansBold
+PwdPrompt.Text = translations[currentLang].pwdPrompt
+PwdPrompt.TextColor3 = Color3.fromRGB(240, 240, 240)
+PwdPrompt.TextSize = 16
+
+local PwdBox = Instance.new("TextBox")
+PwdBox.Name = "PwdBox"
+PwdBox.Parent = PasswordPage
+PwdBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+PwdBox.BackgroundTransparency = 0.2
+PwdBox.Position = UDim2.new(0.1, 0, 0, 65)
+PwdBox.Size = UDim2.new(0.8, 0, 0, 45)
+PwdBox.Font = Enum.Font.SourceSans
+PwdBox.PlaceholderText = translations[currentLang].pwdPlaceholder
+PwdBox.Text = ""
+PwdBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+PwdBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+PwdBox.TextSize = 16
+Instance.new("UICorner", PwdBox).CornerRadius = UDim.new(0, 6)
+local PwdBoxStroke = Instance.new("UIStroke")
+PwdBoxStroke.Color = Color3.fromRGB(100, 100, 120)
+PwdBoxStroke.Parent = PwdBox
+
+local PwdErrorLabel = Instance.new("TextLabel")
+PwdErrorLabel.Name = "PwdErrorLabel"
+PwdErrorLabel.Parent = PasswordPage
+PwdErrorLabel.BackgroundTransparency = 1
+PwdErrorLabel.Position = UDim2.new(0, 0, 0, 115)
+PwdErrorLabel.Size = UDim2.new(1, 0, 0, 25)
+PwdErrorLabel.Font = Enum.Font.SourceSansSemibold
+PwdErrorLabel.Text = ""
+PwdErrorLabel.TextColor3 = Color3.fromRGB(235, 60, 60)
+PwdErrorLabel.TextSize = 14
+
+local PwdSubmitBtn = Instance.new("TextButton")
+PwdSubmitBtn.Name = "PwdSubmitBtn"
+PwdSubmitBtn.Parent = PasswordPage
+PwdSubmitBtn.BackgroundColor3 = Color3.fromRGB(150, 75, 230)
+PwdSubmitBtn.Position = UDim2.new(0.25, 0, 0, 155)
+PwdSubmitBtn.Size = UDim2.new(0.5, 0, 0, 45)
+PwdSubmitBtn.Font = Enum.Font.SourceSansBold
+PwdSubmitBtn.Text = translations[currentLang].btnConfirm
+PwdSubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+PwdSubmitBtn.TextSize = 16
+Instance.new("UICorner", PwdSubmitBtn).CornerRadius = UDim.new(0, 6)
+
+-- 畫面 1：語言選單頁面 (預設隱藏)
 local LangPage = Instance.new("ScrollingFrame")
 LangPage.Name = "LangPage"
 LangPage.Parent = Container
@@ -114,6 +185,7 @@ LangPage.BackgroundTransparency = 1
 LangPage.Size = UDim2.new(1, 0, 1, 0)
 LangPage.CanvasSize = UDim2.new(0, 0, 0, 160)
 LangPage.ScrollBarThickness = 4
+LangPage.Visible = false
 
 local LangPrompt = Instance.new("TextLabel")
 LangPrompt.Parent = LangPage
@@ -124,7 +196,7 @@ LangPrompt.Text = "請選擇您的語言 / Please Select Language"
 LangPrompt.TextColor3 = Color3.fromRGB(240, 240, 240)
 LangPrompt.TextSize = 15
 
--- 畫面 2：腳本選單頁面 (改用 ScrollingFrame 支援滑動)
+-- 畫面 2：腳本選單頁面 (預設隱藏)
 local ScriptsPage = Instance.new("ScrollingFrame")
 ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
@@ -149,7 +221,7 @@ local function createScriptBtn(nameKey, posY, url)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     btn.BackgroundTransparency = 0.2
     btn.Position = UDim2.new(0, 0, 0, posY)
-    btn.Size = UDim2.new(1, -6, 0, 45) -- 留點空間給捲軸
+    btn.Size = UDim2.new(1, -6, 0, 45)
     btn.Font = Enum.Font.SourceSansSemibold
     btn.TextColor3 = Color3.fromRGB(240, 240, 240)
     btn.TextSize = 15
@@ -195,12 +267,30 @@ end)
 -- 更新文字內容的函數
 local function updateTexts()
     TitleLabel.Text = translations[currentLang].title
+    PwdPrompt.Text = translations[currentLang].pwdPrompt
+    PwdBox.PlaceholderText = translations[currentLang].pwdPlaceholder
+    PwdSubmitBtn.Text = translations[currentLang].btnConfirm
     btn1.Text = translations[currentLang].drivingEmpire
     btn2.Text = translations[currentLang].carDealership
     btn3.Text = translations[currentLang].mm2
     btn4.Text = translations[currentLang].midnightChasers
     BackBtn.Text = translations[currentLang].backText
 end
+
+-- 密碼驗證邏輯
+PwdSubmitBtn.MouseButton1Click:Connect(function()
+    if PwdBox.Text == scriptPassword then
+        PasswordPage.Visible = false
+        LangPage.Visible = true
+    else
+        PwdErrorLabel.Text = translations[currentLang].pwdError
+        task.delay(2, function()
+            if PwdErrorLabel then
+                PwdErrorLabel.Text = ""
+            end
+        end)
+    end
+end)
 
 -- 建立語言選擇按鈕
 local function createLangSelectBtn(langCode, langName, posY)
@@ -231,7 +321,7 @@ createLangSelectBtn("zh-TW", "繁體中文", 40)
 createLangSelectBtn("zh-CN", "简体中文", 92)
 createLangSelectBtn("en", "English", 144)
 
--- 二次確認彈窗 (建立在 ScreenGui 確保不會被 MainFrame 裁切或遮擋)
+-- 二次確認彈窗
 ConfirmOverlay = Instance.new("Frame")
 ConfirmOverlay.Name = "ConfirmOverlay"
 ConfirmOverlay.Parent = ScreenGui
@@ -322,4 +412,3 @@ Header.InputEnded:Connect(function(input)
         dragging = false
     end
 end)
-
