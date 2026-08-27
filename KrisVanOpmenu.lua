@@ -15,10 +15,9 @@ local translations = {
         drivingEmpire = "駕駛帝國",
         carDealership = "汽車經銷商大亨",
         mm2 = "誰是殺手2",
+        midnightChasers = "午夜追逐者",
         scriptConfirmDesc = "是否確定要執行此腳本？",
         backText = "返回語言選擇",
-        closeTitle = "提示",
-        closeDesc = "是否要關閉腳本選單？",
         btnConfirm = "確定",
         btnCancel = "取消",
     },
@@ -28,10 +27,9 @@ local translations = {
         drivingEmpire = "驾驶帝国",
         carDealership = "汽车经销商大亨",
         mm2 = "谁是杀手2",
+        midnightChasers = "午夜追逐者",
         scriptConfirmDesc = "是否确定要执行此脚本？",
         backText = "返回语言选择",
-        closeTitle = "提示",
-        closeDesc = "是否要关闭脚本菜单？",
         btnConfirm = "确定",
         btnCancel = "取消",
     },
@@ -41,10 +39,9 @@ local translations = {
         drivingEmpire = "Driving Empire",
         carDealership = "Car Dealership Tycoon",
         mm2 = "Murder Mystery 2",
+        midnightChasers = "Midnight Chasers",
         scriptConfirmDesc = "Are you sure you want to run this script?",
         backText = "Back to Language",
-        closeTitle = "Notice",
-        closeDesc = "Do you want to close the script menu?",
         btnConfirm = "Confirm",
         btnCancel = "Cancel",
     }
@@ -56,15 +53,15 @@ ScreenGui.Name = "DeltaCustomUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- 主視窗框架 (半透明背景)
+-- 主視窗框架 (高度縮小至 270，更符合手機螢幕)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 MainFrame.BackgroundTransparency = 0.25
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -165)
-MainFrame.Size = UDim2.new(0, 400, 0, 330)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -135)
+MainFrame.Size = UDim2.new(0, 400, 0, 270)
 MainFrame.Active = true
 
 -- 紫色外框
@@ -94,65 +91,57 @@ TitleLabel.Name = "TitleLabel"
 TitleLabel.Parent = Header
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
-TitleLabel.Size = UDim2.new(0, 300, 1, 0)
+TitleLabel.Size = UDim2.new(0, 350, 1, 0)
 TitleLabel.Font = Enum.Font.SourceSansSemibold
 TitleLabel.Text = "KrisVan 遊戲輔助"
 TitleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
 TitleLabel.TextSize = 16
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- 關閉按鈕
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Parent = Header
-CloseBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-CloseBtn.Position = UDim2.new(1, -35, 0.5, -11)
-CloseBtn.Size = UDim2.new(0, 22, 0, 22)
-CloseBtn.Font = Enum.Font.SourceSansBold
-CloseBtn.Text = "X"
-CloseBtn.TextColor3 = Color3.fromRGB(235, 60, 60)
-CloseBtn.TextSize = 14
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 4)
-
 -- 內容容器
 local Container = Instance.new("Frame")
 Container.Name = "Container"
 Container.Parent = MainFrame
 Container.BackgroundTransparency = 1
-Container.Position = UDim2.new(0, 15, 0, 45)
-Container.Size = UDim2.new(1, -30, 1, -55)
+Container.Position = UDim2.new(0, 10, 0, 42)
+Container.Size = UDim2.new(1, -20, 1, -50)
 
--- 畫面 1：語言選單頁面
-local LangPage = Instance.new("Frame")
+-- 畫面 1：語言選單頁面 (改用 ScrollingFrame 支援滑動)
+local LangPage = Instance.new("ScrollingFrame")
 LangPage.Name = "LangPage"
 LangPage.Parent = Container
 LangPage.BackgroundTransparency = 1
 LangPage.Size = UDim2.new(1, 0, 1, 0)
+LangPage.CanvasSize = UDim2.new(0, 0, 0, 160)
+LangPage.ScrollBarThickness = 4
 
 local LangPrompt = Instance.new("TextLabel")
 LangPrompt.Parent = LangPage
 LangPrompt.BackgroundTransparency = 1
-LangPrompt.Size = UDim2.new(1, 0, 0, 40)
+LangPrompt.Size = UDim2.new(1, 0, 0, 35)
 LangPrompt.Font = Enum.Font.SourceSansBold
 LangPrompt.Text = "請選擇您的語言 / Please Select Language"
 LangPrompt.TextColor3 = Color3.fromRGB(240, 240, 240)
-LangPrompt.TextSize = 16
+LangPrompt.TextSize = 15
 
--- 畫面 2：腳本選單頁面 (預設隱藏)
-local ScriptsPage = Instance.new("Frame")
+-- 畫面 2：腳本選單頁面 (改用 ScrollingFrame 支援滑動)
+local ScriptsPage = Instance.new("ScrollingFrame")
 ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
 ScriptsPage.BackgroundTransparency = 1
 ScriptsPage.Size = UDim2.new(1, 0, 1, 0)
+ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 270)
+ScriptsPage.ScrollBarThickness = 4
 ScriptsPage.Visible = false
 
 -- 宣告 UI 參考變數
-local btn1, btn2, btn3, BackBtn
+local btn1, btn2, btn3, btn4, BackBtn
 
 -- 宣告共用的確認彈窗變數
 local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
-local pendingUrl = nil -- 用來暫存準備執行的網址
+local pendingUrl = nil
 
--- 建立腳本按鈕的函數 (改為點擊時開啟彈窗)
+-- 建立腳本按鈕的函數
 local function createScriptBtn(nameKey, posY, url)
     local btn = Instance.new("TextButton")
     btn.Name = nameKey
@@ -160,7 +149,7 @@ local function createScriptBtn(nameKey, posY, url)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     btn.BackgroundTransparency = 0.2
     btn.Position = UDim2.new(0, 0, 0, posY)
-    btn.Size = UDim2.new(1, 0, 0, 45)
+    btn.Size = UDim2.new(1, -6, 0, 45) -- 留點空間給捲軸
     btn.Font = Enum.Font.SourceSansSemibold
     btn.TextColor3 = Color3.fromRGB(240, 240, 240)
     btn.TextSize = 15
@@ -181,17 +170,18 @@ local function createScriptBtn(nameKey, posY, url)
 end
 
 btn1 = createScriptBtn("drivingEmpire", 0, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanauto.lua")
-btn2 = createScriptBtn("carDealership", 55, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVancdt.lua")
-btn3 = createScriptBtn("mm2", 110, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanmm2.lua")
+btn2 = createScriptBtn("carDealership", 52, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVancdt.lua")
+btn3 = createScriptBtn("mm2", 104, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanmm2.lua")
+btn4 = createScriptBtn("midnightChasers", 156, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisMidnight.lua")
 
--- 新增：返回語言選擇按鈕
+-- 返回語言選擇按鈕
 BackBtn = Instance.new("TextButton")
 BackBtn.Name = "BackBtn"
 BackBtn.Parent = ScriptsPage
 BackBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
 BackBtn.BackgroundTransparency = 0.2
-BackBtn.Position = UDim2.new(0, 0, 0, 165)
-BackBtn.Size = UDim2.new(1, 0, 0, 45)
+BackBtn.Position = UDim2.new(0, 0, 0, 215)
+BackBtn.Size = UDim2.new(1, -6, 0, 45)
 BackBtn.Font = Enum.Font.SourceSansSemibold
 BackBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 BackBtn.TextSize = 15
@@ -208,6 +198,7 @@ local function updateTexts()
     btn1.Text = translations[currentLang].drivingEmpire
     btn2.Text = translations[currentLang].carDealership
     btn3.Text = translations[currentLang].mm2
+    btn4.Text = translations[currentLang].midnightChasers
     BackBtn.Text = translations[currentLang].backText
 end
 
@@ -218,11 +209,11 @@ local function createLangSelectBtn(langCode, langName, posY)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     btn.BackgroundTransparency = 0.2
     btn.Position = UDim2.new(0, 0, 0, posY)
-    btn.Size = UDim2.new(1, 0, 0, 50)
+    btn.Size = UDim2.new(1, -6, 0, 45)
     btn.Font = Enum.Font.SourceSansSemibold
     btn.Text = langName
     btn.TextColor3 = Color3.fromRGB(240, 240, 240)
-    btn.TextSize = 16
+    btn.TextSize = 15
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
@@ -236,14 +227,14 @@ local function createLangSelectBtn(langCode, langName, posY)
     end)
 end
 
-createLangSelectBtn("zh-TW", "繁體中文", 50)
-createLangSelectBtn("zh-CN", "简体中文", 110)
-createLangSelectBtn("en", "English", 170)
+createLangSelectBtn("zh-TW", "繁體中文", 40)
+createLangSelectBtn("zh-CN", "简体中文", 92)
+createLangSelectBtn("en", "English", 144)
 
--- 二次確認彈窗 (共用)
+-- 二次確認彈窗 (建立在 ScreenGui 確保不會被 MainFrame 裁切或遮擋)
 ConfirmOverlay = Instance.new("Frame")
 ConfirmOverlay.Name = "ConfirmOverlay"
-ConfirmOverlay.Parent = MainFrame
+ConfirmOverlay.Parent = ScreenGui
 ConfirmOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ConfirmOverlay.BackgroundTransparency = 0.6
 ConfirmOverlay.Size = UDim2.new(1, 0, 1, 0)
@@ -292,23 +283,12 @@ NoBtn.TextSize = 14
 NoBtn.ZIndex = 12
 Instance.new("UICorner", NoBtn).CornerRadius = UDim.new(0, 6)
 
--- 點擊關閉按鈕時彈出關閉確認窗
-CloseBtn.MouseButton1Click:Connect(function()
-    pendingUrl = nil -- 清空待執行網址，代表這是要關閉介面
-    DialogText.Text = translations[currentLang].closeDesc
-    YesBtn.Text = translations[currentLang].btnConfirm
-    NoBtn.Text = translations[currentLang].btnCancel
-    ConfirmOverlay.Visible = true
-end)
-
--- 確定按鈕 (根據 pendingUrl 來判斷是要執行腳本還是關閉介面)
+-- 確定按鈕 (執行腳本)
 YesBtn.MouseButton1Click:Connect(function()
     if pendingUrl then
         local urlToRun = pendingUrl
         ScreenGui:Destroy()
         pcall(function() loadstring(game:HttpGet(urlToRun))() end)
-    else
-        ScreenGui:Destroy()
     end
 end)
 
