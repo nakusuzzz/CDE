@@ -8,7 +8,7 @@ end
 local currentLang = "zh-TW"
 
 -- 設定更新後的腳本密碼
-local scriptPassword = "Krisvanlua_1ojdh8wiwh"
+local scriptPassword = "Ziwjri19fk2o.s92j"
 
 -- 多語言文字字典
 local translations = {
