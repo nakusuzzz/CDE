@@ -1,6 +1,6 @@
 --[[
-	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.1.1
-	[Modified: Reordered Sidebar Tabs - Settings moved below Traffic Ghost]
+	WARNING: KrisVan Script (Special Ed.) - Custom Image Asset Floating Button v1.1.2
+	[Modified: Removed Keitaz branding, updated version to v1.1.2 & updated changelog for logic replacement]
 ]]
 
 local Players = game:GetService("Players")
@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -18,170 +19,156 @@ local isJumpPowerEnabled = false
 local isInfiniteJumpEnabled = false
 local activeConnections = {}
 
--- 全域自動駕駛與穿透變數
+-- 全域交通穿透變數
 _G.V29_TrafficNoclip = false
-_G.V29_Mode = "None"
-_G.V29_Speed = 370 
-_G.V29_Setup = false 
-_G.V29_Waypoint = 1 
 
-local HIGHWAY_PATH = {
-    Vector3.new(3305.3, -17.7, 834.7), Vector3.new(3265.1, -17.7, 812.8), Vector3.new(3227.8, -17.7, 792.1),
-    Vector3.new(3192.5, -17.7, 771.8), Vector3.new(3152.6, -17.7, 748.8), Vector3.new(3117.4, -17.6, 729.6),
-    Vector3.new(3078.9, -17.7, 710.7), Vector3.new(3035.2, -17.7, 690.2), Vector3.new(2990.8, -17.7, 669.5),
-    Vector3.new(2941.3, -17.7, 649.9), Vector3.new(2887.0, -17.7, 630.7), Vector3.new(2832.8, -17.7, 611.5),
-    Vector3.new(2777.6, -17.7, 592.0), Vector3.new(2736.8, -17.5, 576.8), Vector3.new(2680.7, -17.1, 555.2),
-    Vector3.new(2642.7, -16.6, 541.5), Vector3.new(2590.9, -15.7, 523.7), Vector3.new(2542.3, -14.6, 507.9),
-    Vector3.new(2496.4, -13.4, 492.9), Vector3.new(2451.9, -11.9, 477.5), Vector3.new(2405.7, -10.3, 461.4),
-    Vector3.new(2357.8, -8.3, 444.6), Vector3.new(2313.5, -6.3, 429.1), Vector3.new(2263.8, -3.8, 412.1),
-    Vector3.new(2209.4, -0.8, 393.9), Vector3.new(2155.9, 2.1, 376.3), Vector3.new(2103.4, 5.0, 359.1),
-    Vector3.new(2051.0, 7.5, 341.9), Vector3.new(1999.8, 9.7, 325.2), Vector3.new(1944.9, 11.8, 307.2),
-    Vector3.new(1879.9, 13.9, 286.0), Vector3.new(1825.3, 15.4, 268.1), Vector3.new(1773.3, 16.5, 251.1),
-    Vector3.new(1714.5, 17.4, 231.8), Vector3.new(1653.8, 18.0, 211.9), Vector3.new(1596.8, 18.2, 193.2),
-    Vector3.new(1537.9, 18.2, 173.9), Vector3.new(1473.8, 18.2, 152.8), Vector3.new(1407.7, 18.2, 131.7),
-    Vector3.new(1338.0, 18.2, 111.3), Vector3.new(1268.4, 18.2, 98.2), Vector3.new(1214.3, 18.2, 89.9),
-    Vector3.new(1150.6, 18.1, 81.8), Vector3.new(1088.0, 18.2, 75.4), Vector3.new(1028.7, 18.2, 71.2),
-    Vector3.new(974.6, 18.3, 70.5), Vector3.new(920.8, 18.2, 73.1), Vector3.new(860.0, 18.2, 77.8),
-    Vector3.new(803.5, 18.2, 80.6), Vector3.new(741.8, 18.2, 81.5), Vector3.new(683.7, 18.2, 82.5),
-    Vector3.new(629.1, 18.2, 83.9), Vector3.new(566.0, 18.2, 85.0), Vector3.new(504.3, 18.2, 86.2),
-    Vector3.new(434.9, 18.2, 87.4), Vector3.new(376.2, 18.2, 88.1), Vector3.new(307.4, 18.2, 87.9),
-    Vector3.new(242.4, 18.2, 87.6), Vector3.new(180.3, 18.2, 87.3), Vector3.new(115.1, 18.2, 87.1),
-    Vector3.new(41.8, 18.2, 86.8), Vector3.new(-20.0, 18.2, 86.6), Vector3.new(-82.4, 18.2, 86.5),
-    Vector3.new(-151.7, 18.2, 86.3), Vector3.new(-224.3, 18.2, 86.2), Vector3.new(-266.7, 18.2, 86.1),
-    Vector3.new(-306.8, 18.2, 86.1), Vector3.new(-374.4, 18.2, 86.0), Vector3.new(-444.1, 18.2, 86.0),
-    Vector3.new(-513.0, 18.2, 86.1), Vector3.new(-582.5, 18.2, 86.1), Vector3.new(-651.3, 18.2, 86.2),
-    Vector3.new(-728.8, 18.2, 86.3), Vector3.new(-800.2, 18.1, 86.5), Vector3.new(-870.8, 18.2, 86.6),
-    Vector3.new(-944.6, 18.2, 86.7), Vector3.new(-1016.1, 17.9, 87.2), Vector3.new(-1090.8, 17.1, 89.8),
-    Vector3.new(-1164.3, 15.9, 95.9), Vector3.new(-1205.5, 14.9, 100.7), Vector3.new(-1246.8, 13.8, 105.9),
-    Vector3.new(-1289.6, 12.4, 111.5), Vector3.new(-1330.7, 11.0, 117.3), Vector3.new(-1370.8, 9.5, 125.1),
-    Vector3.new(-1441.6, 6.6, 138.5), Vector3.new(-1519.0, 2.5, 156.9), Vector3.new(-1568.8, -0.2, 169.8),
-    Vector3.new(-1642.2, -4.1, 189.2), Vector3.new(-1681.8, -6.2, 199.9), Vector3.new(-1755.2, -9.4, 217.9),
-    Vector3.new(-1825.2, -11.9, 234.1), Vector3.new(-1899.5, -14.0, 251.4), Vector3.new(-1938.5, -14.9, 261.2),
-    Vector3.new(-2010.7, -16.3, 281.1), Vector3.new(-2052.3, -16.8, 292.6), Vector3.new(-2130.6, -17.4, 312.2),
-    Vector3.new(-2210.6, -17.4, 330.4), Vector3.new(-2252.7, -17.4, 339.9), Vector3.new(-2323.0, -16.9, 355.0),
-    Vector3.new(-2398.9, -15.8, 370.7), Vector3.new(-2467.7, -14.5, 385.0), Vector3.new(-2536.5, -12.7, 399.3),
-    Vector3.new(-2612.4, -10.2, 414.6), Vector3.new(-2654.5, -8.5, 423.2), Vector3.new(-2696.6, -6.7, 431.9),
-    Vector3.new(-2769.5, -3.2, 447.0), Vector3.new(-2842.3, 0.6, 462.1), Vector3.new(-2881.6, 2.7, 470.1),
-    Vector3.new(-2923.6, 5.0, 478.8), Vector3.new(-2964.3, 7.2, 487.1), Vector3.new(-3006.3, 9.2, 495.8),
-    Vector3.new(-3045.6, 11.0, 503.8), Vector3.new(-3086.4, 12.7, 512.2), Vector3.new(-3128.4, 14.3, 521.0),
-    Vector3.new(-3167.7, 15.6, 529.3), Vector3.new(-3208.4, 16.8, 537.9), Vector3.new(-3258.9, 18.1, 548.5),
-    Vector3.new(-3298.2, 19.0, 556.8), Vector3.new(-3368.4, 20.1, 571.6), Vector3.new(-3411.9, 20.6, 580.7),
-    Vector3.new(-3451.3, 20.9, 589.1), Vector3.new(-3527.2, 21.0, 605.1), Vector3.new(-3604.6, 21.0, 621.4),
-    Vector3.new(-3687.6, 21.0, 639.0), Vector3.new(-3732.6, 21.0, 648.6), Vector3.new(-3805.6, 21.0, 664.0),
-    Vector3.new(-3887.1, 21.1, 681.4), Vector3.new(-3957.4, 21.0, 696.4), Vector3.new(-3998.2, 21.0, 705.1),
-    Vector3.new(-4040.4, 21.0, 714.1), Vector3.new(-4079.8, 21.0, 722.0), Vector3.new(-4123.5, 21.1, 730.7),
-    Vector3.new(-4199.6, 21.7, 746.1), Vector3.new(-4240.4, 22.2, 754.8), Vector3.new(-4312.2, 23.4, 770.2),
-    Vector3.new(-4355.6, 24.2, 779.8), Vector3.new(-4428.4, 25.5, 796.4), Vector3.new(-4506.8, 26.9, 814.4),
-    Vector3.new(-4581.0, 28.1, 831.1), Vector3.new(-4658.0, 28.8, 848.4), Vector3.new(-4726.8, 29.1, 863.7),
-    Vector3.new(-4768.8, 29.2, 873.2), Vector3.new(-4851.6, 28.8, 891.7), Vector3.new(-4895.0, 28.4, 901.4),
-    Vector3.new(-4935.7, 27.9, 910.5), Vector3.new(-5008.8, 26.7, 926.9), Vector3.new(-5083.3, 25.3, 943.5),
-    Vector3.new(-5124.0, 24.6, 952.6), Vector3.new(-5167.6, 23.8, 962.3), Vector3.new(-5208.3, 23.1, 971.4),
-    Vector3.new(-5251.9, 22.3, 981.1), Vector3.new(-5322.2, 21.1, 996.6), Vector3.new(-5401.0, 19.7, 1013.7),
-    Vector3.new(-5443.2, 18.9, 1022.8), Vector3.new(-5517.8, 17.6, 1038.8), Vector3.new(-5561.4, 16.8, 1048.1),
-    Vector3.new(-5603.7, 16.0, 1057.1), Vector3.new(-5647.3, 15.3, 1066.4), Vector3.new(-5724.7, 13.9, 1083.0),
-    Vector3.new(-5764.1, 13.2, 1091.4), Vector3.new(-5809.2, 12.4, 1101.0), Vector3.new(-5882.4, 11.1, 1116.6),
-    Vector3.new(-5921.8, 10.4, 1125.0), Vector3.new(-5962.6, 9.6, 1133.7), Vector3.new(-6035.8, 8.4, 1149.3),
-    Vector3.new(-6075.3, 7.9, 1157.6), Vector3.new(-6114.7, 7.6, 1166.0), Vector3.new(-6154.1, 7.4, 1174.4),
-    Vector3.new(-6225.9, 7.3, 1189.6), Vector3.new(-6266.7, 7.4, 1198.2), Vector3.new(-6341.1, 7.3, 1214.0),
-    Vector3.new(-6415.7, 7.3, 1229.8), Vector3.new(-6456.5, 7.3, 1238.4), Vector3.new(-6531.0, 7.3, 1254.1),
-    Vector3.new(-6604.2, 7.3, 1269.5), Vector3.new(-6682.9, 7.3, 1286.0), Vector3.new(-6753.3, 7.3, 1300.8),
-    Vector3.new(-6826.5, 7.3, 1316.2), Vector3.new(-6896.8, 7.3, 1331.0), Vector3.new(-6974.2, 7.3, 1347.3),
-    Vector3.new(-7015.0, 7.3, 1355.9), Vector3.new(-7092.4, 7.3, 1372.1), Vector3.new(-7171.2, 7.3, 1388.7),
-    Vector3.new(-7244.3, 7.4, 1404.0), Vector3.new(-7286.5, 7.3, 1412.9), Vector3.new(-7358.2, 7.3, 1428.0),
-    Vector3.new(-7434.2, 7.3, 1444.1), Vector3.new(-7508.6, 7.5, 1460.1), Vector3.new(-7547.7, 7.4, 1469.3),
-    Vector3.new(-7621.0, 7.4, 1489.2), Vector3.new(-7696.1, 7.5, 1514.6), Vector3.new(-7762.8, 7.6, 1541.5),
-    Vector3.new(-7834.0, 7.4, 1573.1), Vector3.new(-7899.0, 7.3, 1602.2), Vector3.new(-7967.0, 7.3, 1632.7),
-    Vector3.new(-8015.4, 7.4, 1654.4), Vector3.new(-8062.6, 7.3, 1675.5), Vector3.new(-8106.0, 7.3, 1694.7),
-    Vector3.new(-8142.8, 7.3, 1711.0), Vector3.new(-8182.3, 7.3, 1728.3), Vector3.new(-8220.4, 7.3, 1745.1),
-    Vector3.new(-8259.9, 7.2, 1762.5), Vector3.new(-8303.6, 6.7, 1781.2), Vector3.new(-8340.7, 6.3, 1796.9),
-    Vector3.new(-8383.1, 5.5, 1814.8), Vector3.new(-8420.2, 4.7, 1830.4), Vector3.new(-8489.1, 2.9, 1859.7),
-    Vector3.new(-8562.0, 0.3, 1890.8), Vector3.new(-8634.8, -2.5, 1921.9), Vector3.new(-8674.6, -4.2, 1938.9),
-    Vector3.new(-8711.7, -6.0, 1954.8), Vector3.new(-8783.2, -9.7, 1985.3), Vector3.new(-8825.6, -12.3, 2003.4),
-    Vector3.new(-8862.6, -14.7, 2019.3), Vector3.new(-8902.4, -17.3, 2036.3), Vector3.new(-8972.5, -22.5, 2066.3),
-    Vector3.new(-9040.0, -28.0, 2095.2), Vector3.new(-9107.5, -33.9, 2124.1), Vector3.new(-9179.0, -40.7, 2154.7),
-    Vector3.new(-9217.4, -44.4, 2171.1), Vector3.new(-9286.2, -50.9, 2200.7), Vector3.new(-9357.5, -57.7, 2231.9),
-    Vector3.new(-9427.5, -64.4, 2262.7), Vector3.new(-9464.5, -67.9, 2278.9), Vector3.new(-9537.1, -74.9, 2310.9),
-    Vector3.new(-9574.1, -78.4, 2327.2), Vector3.new(-9613.7, -82.0, 2344.6), Vector3.new(-9685.0, -88.1, 2376.0),
-    Vector3.new(-9723.3, -91.2, 2392.9), Vector3.new(-9798.4, -96.6, 2426.1), Vector3.new(-9837.9, -99.3, 2443.5),
-    Vector3.new(-9874.9, -101.6, 2459.7), Vector3.new(-9912.0, -103.8, 2475.5), Vector3.new(-9951.9, -106.0, 2492.2),
-    Vector3.new(-10018.3, -109.2, 2520.0), Vector3.new(-10056.8, -110.9, 2536.1), Vector3.new(-10124.6, -113.4, 2564.5),
-    Vector3.new(-10163.1, -114.7, 2580.7), Vector3.new(-10200.2, -115.8, 2596.4), Vector3.new(-10237.4, -116.7, 2612.0),
-    Vector3.new(-10305.2, -117.9, 2640.6), Vector3.new(-10375.5, -118.7, 2670.2), Vector3.new(-10414.0, -119.0, 2686.4),
-    Vector3.new(-10485.6, -119.0, 2716.6), Vector3.new(-10555.9, -118.5, 2746.2), Vector3.new(-10592.9, -118.0, 2761.8),
-    Vector3.new(-10631.3, -117.3, 2778.0), Vector3.new(-10669.7, -116.5, 2794.2), Vector3.new(-10710.7, -115.5, 2811.4),
-    Vector3.new(-10749.1, -114.3, 2827.6), Vector3.new(-10820.5, -111.8, 2857.6), Vector3.new(-10858.8, -110.3, 2873.7),
-    Vector3.new(-10899.7, -108.4, 2891.0), Vector3.new(-10964.0, -105.1, 2919.0), Vector3.new(-11003.2, -102.9, 2936.6),
-    Vector3.new(-11071.0, -98.7, 2967.1), Vector3.new(-11110.2, -96.0, 2984.7), Vector3.new(-11149.4, -93.1, 3002.1),
-    Vector3.new(-11189.9, -90.0, 3019.9), Vector3.new(-11227.8, -87.0, 3036.6), Vector3.new(-11301.1, -80.6, 3068.6),
-    Vector3.new(-11370.6, -74.0, 3098.3), Vector3.new(-11441.4, -67.3, 3128.5), Vector3.new(-11511.0, -60.7, 3158.2),
-    Vector3.new(-11547.7, -57.2, 3173.9), Vector3.new(-11587.1, -53.6, 3190.8), Vector3.new(-11663.2, -47.2, 3223.3),
-    Vector3.new(-11736.9, -41.5, 3254.8), Vector3.new(-11777.7, -38.7, 3272.2), Vector3.new(-11843.4, -34.4, 3300.3),
-    Vector3.new(-11907.9, -30.7, 3327.8), Vector3.new(-11947.5, -28.6, 3344.7), Vector3.new(-11989.7, -26.6, 3362.6),
-    Vector3.new(-12026.7, -25.0, 3378.1), Vector3.new(-12067.9, -23.4, 3395.0), Vector3.new(-12136.8, -20.8, 3423.6),
-    Vector3.new(-12211.0, -18.0, 3454.4), Vector3.new(-12279.8, -15.4, 3483.0), Vector3.new(-12316.8, -14.0, 3498.4),
-    Vector3.new(-12357.5, -12.6, 3516.1), Vector3.new(-12395.4, -11.5, 3533.3), Vector3.new(-12433.1, -10.6, 3550.9),
-    Vector3.new(-12497.9, -9.3, 3581.8), Vector3.new(-12563.5, -8.0, 3614.6), Vector3.new(-12630.3, -6.6, 3651.2),
-    Vector3.new(-12666.4, -5.9, 3672.2), Vector3.new(-12732.8, -4.5, 3712.5), Vector3.new(-12796.6, -3.6, 3754.0),
-    Vector3.new(-12858.5, -3.2, 3797.9), Vector3.new(-12915.7, -3.2, 3843.3), Vector3.new(-12971.3, -3.2, 3892.6),
-    Vector3.new(-13001.6, -3.3, 3920.8), Vector3.new(-13056.5, -3.3, 3971.2), Vector3.new(-13112.5, -3.3, 4024.7),
-    Vector3.new(-13165.4, -3.3, 4079.4), Vector3.new(-13214.7, -3.3, 4135.3), Vector3.new(-13262.9, -3.3, 4192.5),
-    Vector3.new(-13311.9, -3.3, 4250.9), Vector3.new(-13360.9, -3.3, 4309.2), Vector3.new(-13405.3, -3.3, 4365.6),
-    Vector3.new(-13447.9, -3.3, 4425.0), Vector3.new(-13489.0, -3.3, 4485.5), Vector3.new(-13530.9, -3.3, 4549.1),
-    Vector3.new(-13570.8, -3.5, 4610.5), Vector3.new(-13593.3, -3.7, 4645.6), Vector3.new(-13632.0, -4.5, 4706.3),
-    Vector3.new(-13653.7, -5.1, 4740.2), Vector3.new(-13675.5, -5.8, 4774.2), Vector3.new(-13697.5, -6.5, 4808.0),
-    Vector3.new(-13720.1, -7.2, 4841.4), Vector3.new(-13762.1, -8.5, 4901.6), Vector3.new(-13785.3, -9.2, 4934.7),
-    Vector3.new(-13827.8, -10.5, 4994.6), Vector3.new(-13869.8, -11.7, 5053.1), Vector3.new(-13910.6, -12.9, 5110.6),
-    Vector3.new(-13955.2, -14.3, 5174.3), Vector3.new(-13980.0, -14.9, 5209.7), Vector3.new(-14003.9, -15.4, 5243.9),
-    Vector3.new(-14026.9, -15.8, 5277.0), Vector3.new(-14070.1, -16.1, 5339.8), Vector3.new(-14112.6, -16.1, 5401.4),
-    Vector3.new(-14153.2, -15.6, 5460.6), Vector3.new(-14176.7, -15.2, 5495.0), Vector3.new(-14218.1, -14.2, 5555.4),
-    Vector3.new(-14258.5, -12.8, 5614.7), Vector3.new(-14281.7, -11.8, 5649.3), Vector3.new(-14322.3, -9.8, 5710.1),
-    Vector3.new(-14364.6, -7.3, 5773.2), Vector3.new(-14406.8, -4.7, 5836.3), Vector3.new(-14429.1, -3.3, 5869.6),
-    Vector3.new(-14472.9, -0.9, 5935.1), Vector3.new(-14495.2, 0.2, 5968.5), Vector3.new(-14538.3, 1.9, 6032.9),
-    Vector3.new(-14585.5, 3.2, 6103.4), Vector3.new(-16565.8, 16.6, 12373.3)
+-- AutoFarm 變數與設定
+local IS_SALTFLATS = (game.PlaceId == 139048751758942)
+local SAVE_FILE = "AutoFarmData.json"
+
+local autoFarmActive = false
+local carStabilizationConnection = nil
+local uiElements = nil
+local farmStartCash = 0
+local farmStartTime = 0
+
+local allTimeMoney = 0
+local longestAFKSeconds = 0
+
+local WAYPOINTS = IS_SALTFLATS and {
+    Vector3.new(3338, -9, 6035),
+    Vector3.new(3397, -6, 6105),
+    Vector3.new(2781, -6, 5214),
+    Vector3.new(599, 5, 1451),
+    Vector3.new(-1313, 5, -1092),
+    Vector3.new(-1893, 5, -1692),
+    Vector3.new(-15069, 5, -14868),
+    Vector3.new(-38681, 5, -38500),
+} or {
+    Vector3.new(-67850, -14, 10051),
+    Vector3.new(-12121, -16, -2788),
 }
 
-local tracker = Instance.new("Part")
-tracker.Size = Vector3.new(4, 50, 4)
-tracker.Anchored = true; tracker.CanCollide = false
-tracker.Material = Enum.Material.Neon; tracker.Color = Color3.fromRGB(255, 0, 0)
-tracker.Transparency = 0.3; tracker.Parent = workspace
-tracker.CFrame = CFrame.new(0, -1000, 0)
-
-local function getCar()
-    local cam = workspace.CurrentCamera
-    if cam and cam.CameraSubject and cam.CameraSubject:IsA("BasePart") then
-        local carModel = cam.CameraSubject:FindFirstAncestorOfClass("Model")
-        if carModel and carModel ~= player.Character then return carModel end
-    end
-    if player.Character then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum and hum.SeatPart then return hum.SeatPart:FindFirstAncestorOfClass("Model") end
-    end
-    return nil
+local function loadData()
+    local ok, result = pcall(readfile, SAVE_FILE)
+    if not ok or not result then return end
+    local ok2, data = pcall(HttpService.JSONDecode, HttpService, result)
+    if not ok2 or not data then return end
+    if data.allTime then allTimeMoney = data.allTime end
+    if data.longestAFK then longestAFKSeconds = data.longestAFK end
 end
 
-local function getCarRoot(car)
-    return car.PrimaryPart or car:FindFirstChild("DriveSeat") or car:FindFirstChild("VehicleSeat") or car:FindFirstChildWhichIsA("BasePart")
+local function saveData()
+    pcall(writefile, SAVE_FILE, HttpService:JSONEncode({
+        allTime = allTimeMoney,
+        longestAFK = longestAFKSeconds,
+    }))
 end
 
-local function getNextWaypointStrict(currentPos, activePath)
-    if #activePath == 0 then return 1 end
-    local maxCheck = math.min(_G.V29_Waypoint + 15, #activePath)
-    local closestDist = math.huge
-    local bestIndex = _G.V29_Waypoint
-    
-    for i = _G.V29_Waypoint, maxCheck do
-        local dist = (activePath[i] - currentPos).Magnitude
-        if dist < closestDist then 
-            closestDist = dist
-            bestIndex = i 
+loadData()
+
+local function disableCollision(model)
+    for _, desc in pairs(model:GetDescendants()) do
+        if desc:IsA("BasePart") then desc.CanCollide = false end
+    end
+end
+
+local function setupExistingVehicles()
+    local npc = workspace:FindFirstChild("NPCVehicles")
+    if not npc then return end
+    local vehicles = npc:FindFirstChild("Vehicles")
+    if not vehicles then return end
+    for _, v in pairs(vehicles:GetChildren()) do
+        if v:IsA("Model") or v:IsA("Folder") then disableCollision(v) end
+    end
+end
+
+setupExistingVehicles()
+task.spawn(function() while true do task.wait(1) setupExistingVehicles() end end)
+
+if not IS_SALTFLATS then
+    task.spawn(function()
+        task.wait(0.5)
+        local SLAB, BASE_X, BASE_Z, BASE_Y = 2048, -36149, 5376, -16.5
+        local roadModel = Instance.new("Model")
+        roadModel.Name = "FarmRoad"
+        for row = -15, 15 do
+            for col = -15, 15 do
+                local slab = Instance.new("Part")
+                slab.Size = Vector3.new(SLAB, 0.2, SLAB)
+                slab.CFrame = CFrame.new(BASE_X + col * SLAB, BASE_Y - 0.5, BASE_Z + row * SLAB)
+                slab.Anchored = true; slab.CanCollide = true
+                slab.Material = Enum.Material.Asphalt
+                slab.Color = Color3.fromRGB(50, 50, 50)
+                slab.Parent = roadModel
+            end
         end
-    end
-    return bestIndex
+        roadModel.Parent = workspace
+    end)
 end
 
+local function formatNumber(num)
+    local f = tostring(math.floor(num))
+    local k
+    while true do
+        f, k = string.gsub(f, "^(-?%d+)(%d%d%d)", "%1,%2")
+        if k == 0 then break end
+    end
+    return f
+end
+
+local function formatAbbreviated(num)
+    if num >= 1000000000 then return string.format("%.1fB", num / 1000000000)
+    elseif num >= 1000000 then return string.format("%.1fM", num / 1000000)
+    elseif num >= 1000 then return string.format("%.1fK", num / 1000)
+    end
+    return tostring(math.floor(num))
+end
+
+local function formatTime(seconds)
+    local h = math.floor(seconds / 3600)
+    local m = math.floor((seconds % 3600) / 60)
+    local s = math.floor(seconds % 60)
+    return string.format("%02d:%02d:%02d", h, m, s)
+end
+
+local allTimeLabel = nil
+local longestAFKLabel = nil
+
+local function updateAllTimeUI()
+    if allTimeLabel then allTimeLabel.Text = "All-Time Money: $" .. formatAbbreviated(allTimeMoney) end
+end
+
+local function updateLongestAFKUI()
+    if longestAFKLabel then longestAFKLabel.Text = "Longest AFK: " .. formatTime(longestAFKSeconds) end
+end
+
+local function setupUITracking()
+    local mainUI = player.PlayerGui:WaitForChild("Main_User_Interface", 5)
+    if not mainUI then return nil end
+    local afkRewards = mainUI:WaitForChild("AFKRewards")
+    local cashEarnedLabel = afkRewards:WaitForChild("CashEarned"):WaitForChild("Label")
+    local timeLabel = afkRewards:WaitForChild("Time"):WaitForChild("Label")
+    afkRewards.Visible = false
+
+    return {
+        cashEarnedLabel = cashEarnedLabel,
+        timeLabel = timeLabel,
+        afkRewards = afkRewards,
+    }
+end
+
+task.spawn(function() task.wait(1); uiElements = setupUITracking() end)
+
+-- 內建防掛機 (Idled 事件)
+Players.LocalPlayer.Idled:Connect(function()
+    game:GetService("VirtualUser"):CaptureController()
+    game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+end)
+
+-- 交通穿透邏輯
 RunService.Stepped:Connect(function()
-    if _G.V29_TrafficNoclip or _G.V29_Mode ~= "None" then
+    if _G.V29_TrafficNoclip then
         local npcSystem = workspace:FindFirstChild("NPCVehicles")
         local vehiclesFolder = npcSystem and npcSystem:FindFirstChild("Vehicles")
         
@@ -199,81 +186,21 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-local bodyVelocity = nil
-local bodyGyro = nil
-
-local function cleanupMovers()
-    if bodyVelocity then bodyVelocity:Destroy(); bodyVelocity = nil end
-    if bodyGyro then bodyGyro:Destroy(); bodyGyro = nil end
-    tracker.CFrame = CFrame.new(0, -1000, 0)
-end
-
-task.spawn(function()
-    while true do
-        if _G.V29_Mode == "Farm" and not _G.V29_Setup then
-            local activePath = HIGHWAY_PATH
-            local car = getCar()
-            local root = car and getCarRoot(car)
-
-            if car and root then
-                for _, part in pairs(car:GetDescendants()) do
-                    if part:IsA("BasePart") and part.Anchored then
-                        part.Anchored = false
-                    end
-                end
-                
-                if not bodyVelocity or bodyVelocity.Parent ~= root then
-                    if bodyVelocity then bodyVelocity:Destroy() end
-                    bodyVelocity = Instance.new("BodyVelocity")
-                    bodyVelocity.MaxForce = Vector3.new(math.huge, 0, math.huge) 
-                    bodyVelocity.Parent = root
-                end
-                
-                if not bodyGyro or bodyGyro.Parent ~= root then
-                    if bodyGyro then bodyGyro:Destroy() end
-                    bodyGyro = Instance.new("BodyGyro")
-                    bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge) 
-                    bodyGyro.D = 500
-                    bodyGyro.P = 50000 
-                    bodyGyro.Parent = root
-                end
-
-                _G.V29_Waypoint = getNextWaypointStrict(root.Position, activePath)
-                
-                if _G.V29_Waypoint >= #activePath - 2 then
-                    bodyVelocity.Velocity = Vector3.zero
-                    root.AssemblyLinearVelocity = Vector3.zero
-                    root.AssemblyAngularVelocity = Vector3.zero
-                    
-                    _G.V29_Waypoint = 1
-                    car:PivotTo(CFrame.new(activePath[1] + Vector3.new(0, 5, 0)))
-                    task.wait(1)
-                    continue
-                end
-                
-                local targetIndex = _G.V29_Waypoint + 1
-                if targetIndex > #activePath then targetIndex = #activePath end
-                local targetPos = activePath[targetIndex]
-                tracker.CFrame = CFrame.new(targetPos)
-                
-                local direction = (targetPos - root.Position).Unit
-                bodyVelocity.Velocity = direction * _G.V29_Speed
-                bodyGyro.CFrame = CFrame.lookAt(root.Position, root.Position + direction)
-            end
-        else
-            cleanupMovers()
-        end
-        task.wait(0.03) 
-    end
-end)
-
 local function stopAllRoutines()
     isAntiAfkEnabled = false
     isWalkSpeedEnabled = false
     isJumpPowerEnabled = false
     isInfiniteJumpEnabled = false
-    _G.V29_Mode = "None"
     _G.V29_TrafficNoclip = false
+    if autoFarmActive then
+        autoFarmActive = false
+        saveData()
+        if uiElements then uiElements.afkRewards.Visible = false end
+        if carStabilizationConnection then
+            carStabilizationConnection:Disconnect()
+            carStabilizationConnection = nil
+        end
+    end
 
     for _, conn in ipairs(activeConnections) do
         if conn then
@@ -332,16 +259,16 @@ local function playStartupLoadingScreen(onFinished)
     innerStroke.Thickness = 1.5
     innerStroke.Transparency = 1
 
-    local titleLabel = Instance.new("TextLabel", mainFrame)
-    titleLabel.Size = UDim2.new(0, 400, 0, 50)
-    titleLabel.Position = UDim2.new(0.5, -200, 0.5, 25)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "KrisVan Script v1.1.1"
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 32
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.TextTransparency = 1
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    local titleLabelLoad = Instance.new("TextLabel", mainFrame)
+    titleLabelLoad.Size = UDim2.new(0, 400, 0, 50)
+    titleLabelLoad.Position = UDim2.new(0.5, -200, 0.5, 25)
+    titleLabelLoad.BackgroundTransparency = 1
+    titleLabelLoad.Text = "KrisVan Script v1.1.2"
+    titleLabelLoad.Font = Enum.Font.GothamBold
+    titleLabelLoad.TextSize = 32
+    titleLabelLoad.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabelLoad.TextTransparency = 1
+    titleLabelLoad.TextXAlignment = Enum.TextXAlignment.Center
 
     local subTitle = Instance.new("TextLabel", mainFrame)
     subTitle.Size = UDim2.new(0, 400, 0, 20)
@@ -363,7 +290,7 @@ local function playStartupLoadingScreen(onFinished)
         TweenService:Create(ringStroke, fadeInInfo, {Transparency = 0.2}):Play()
         TweenService:Create(innerStroke, fadeInInfo, {Transparency = 0}):Play()
         TweenService:Create(ringInner, fadeInInfo, {BackgroundTransparency = 0.3}):Play()
-        TweenService:Create(titleLabel, fadeInInfo, {TextTransparency = 0}):Play()
+        TweenService:Create(titleLabelLoad, fadeInInfo, {TextTransparency = 0}):Play()
         TweenService:Create(subTitle, fadeInInfo, {TextTransparency = 0}):Play()
 
         local active = true
@@ -389,7 +316,7 @@ local function playStartupLoadingScreen(onFinished)
         TweenService:Create(ringStroke, fadeOutInfo, {Transparency = 1}):Play()
         TweenService:Create(innerStroke, fadeOutInfo, {Transparency = 1}):Play()
         TweenService:Create(ringInner, fadeOutInfo, {BackgroundTransparency = 1}):Play()
-        TweenService:Create(titleLabel, fadeOutInfo, {TextTransparency = 1}):Play()
+        TweenService:Create(titleLabelLoad, fadeOutInfo, {TextTransparency = 1}):Play()
         TweenService:Create(subTitle, fadeOutInfo, {TextTransparency = 1}):Play()
 
         task.wait(0.6)
@@ -549,7 +476,7 @@ runMainScript = function(selectedLanguage)
     local L = {}
     if selectedLanguage == "ZH" then
         L = {
-            Title = "⚔️ KrisVan 遊戲輔助 v1.1.1",
+            Title = "⚔️ KrisVan 遊戲輔助 v1.1.2",
             Tab0 = "👤 作者資訊",
             TabLog = "📋 更新日誌",
             TabFarm = "🚗 自動掛機",
@@ -561,15 +488,15 @@ runMainScript = function(selectedLanguage)
             LogHeader = "[📋 更新日誌 📋]",
             LogClickHint = " (點擊展開/收合)",
             Logs = {
-                {version = "v1.1.1", details = "• 重新排版側邊欄選單分頁順序\n• 將「其他設定」分頁移動至「交通穿透」下方\n• 優化整體介面視覺體驗"},
-                {version = "v1.1.0", details = "• 新增獨立分頁：Auto-Farm 與 Traffic Ghost 開關\n• 優化介面配置與導航功能"},
+                {version = "v1.1.2", details = "• 重構底層架構並替換自動掛機邏輯\n• 移除舊有品牌名稱與自訂識別標籤\n• 優化程式碼執行效能與資料儲存穩定性"},
+                {version = "v1.1.1", details = "• 整合全新 Auto-Farm 自動掛機系統\n• 重新排版側邊欄選單分頁順序\n• 優化整體介面視覺體驗"},
                 {version = "v1.0.0", details = "• 初始版本發布\n• 包含基礎移動速度、跳躍高度、無限跳與防掛機功能"}
             },
             SpeedTip = "移動速度 (16~200)",
             JumpTip = "跳躍高度 (50~100)",
             InfJump = "跳躍無冷卻 (無限跳)",
             AntiAfk = "防掛機保護",
-            FarmDesc = "【 Auto-Farm 自動駕駛 】\n點擊下方按鈕可快速切換高速公路自動農金開關。",
+            FarmDesc = "【 Auto-Farm 自動駕駛掛機 】\n請先坐上車輛後點擊下方按鈕啟動掛機系統。",
             GhostDesc = "【 Traffic Ghost 交通穿透 】\n點擊下方按鈕可快速切換 NPC 車輛碰撞穿透開關，避免撞車卡住。",
             LangBtn = "🌐 切換語言",
             MenuBtn = "🏠 返回遊戲選單",
@@ -582,7 +509,7 @@ runMainScript = function(selectedLanguage)
         }
     elseif selectedLanguage == "CN" then
         L = {
-            Title = "⚔️ KrisVan 游戏辅助 v1.1.1",
+            Title = "⚔️ KrisVan 游戏辅助 v1.1.2",
             Tab0 = "👤 作者信息",
             TabLog = "📋 更新日志",
             TabFarm = "🚗 自动挂机",
@@ -594,15 +521,15 @@ runMainScript = function(selectedLanguage)
             LogHeader = "[📋 更新日志 📋]",
             LogClickHint = " (点击展开/收合)",
             Logs = {
-                {version = "v1.1.1", details = "• 重新排版侧边栏菜单分页顺序\n• 将“其他设定”分页移动至“交通穿透”下方\n• 优化整体界面视觉体验"},
-                {version = "v1.1.0", details = "• 新增独立分页：Auto-Farm 与 Traffic Ghost 开关\n• 优化界面配置与导航功能"},
+                {version = "v1.1.2", details = "• 重构底层架构并替换自动挂机逻辑\n• 移除旧有品牌名称与自定义识别标签\n• 优化代码执行性能与数据存储稳定性"},
+                {version = "v1.1.1", details = "• 整合全新 Auto-Farm 自动挂机系统\n• 重新排版侧边栏菜单分页顺序\n• 优化整体界面视觉体验"},
                 {version = "v1.0.0", details = "• 初始版本发布\n• 包含基础移动速度、跳跃高度、无限跳与防挂机功能"}
             },
             SpeedTip = "移动速度 (16~200)",
             JumpTip = "跳跃高度 (50~100)",
             InfJump = "跳跃无冷却 (无限跳)",
             AntiAfk = "防挂机保护",
-            FarmDesc = "【 Auto-Farm 自动驾驶 】\n点击下方按钮可快速切换高速公路自动农金开关。",
+            FarmDesc = "【 Auto-Farm 自动驾驶挂机 】\n请先坐上车辆后点击下方按钮启动挂机系统。",
             GhostDesc = "【 Traffic Ghost 交通穿透 】\n点击下方按钮可快速切换 NPC 车辆碰撞穿透开关，避免撞车卡住。",
             LangBtn = "🌐 切换语言",
             MenuBtn = "🏠 返回游戏菜单",
@@ -615,7 +542,7 @@ runMainScript = function(selectedLanguage)
         }
     else
         L = {
-            Title = "⚔️ KrisVan Script v1.1.1",
+            Title = "⚔️ KrisVan Script v1.1.2",
             Tab0 = "👤 Author",
             TabLog = "📋 Changelog",
             TabFarm = "🚗 Auto-Farm",
@@ -627,15 +554,15 @@ runMainScript = function(selectedLanguage)
             LogHeader = "[📋 Changelog 📋]",
             LogClickHint = " (Click to toggle)",
             Logs = {
-                {version = "v1.1.1", details = "• Reordered sidebar menu tab layout\n• Moved Settings tab below Traffic Ghost tab\n• Improved overall UI design"},
-                {version = "v1.1.0", details = "• Added dedicated tabs for Auto-Farm and Traffic Ghost\n• Improved UI layout"},
+                {version = "v1.1.2", details = "• Refactored core architecture and replaced auto-farm logic\n• Removed legacy branding and custom markers\n• Optimized execution performance and data persistence"},
+                {version = "v1.1.1", details = "• Integrated Auto-Farm system\n• Reordered sidebar menu tab layout\n• Improved overall UI design"},
                 {version = "v1.0.0", details = "• Initial release\n• Includes walkspeed, jumppower, infinite jump & anti-afk features"}
             },
             SpeedTip = "Walk Speed (16~200)",
             JumpTip = "Jump Power (50~100)",
             InfJump = "Infinite Jump",
             AntiAfk = "Anti-AFK Protection",
-            FarmDesc = "[ Auto-Farm Feature ]\nToggle highway auto-farm driving mode.",
+            FarmDesc = "[ Auto-Farm Feature ]\nSit in a vehicle and click below to start auto-farm.",
             GhostDesc = "[ Traffic Ghost Feature ]\nToggle NPC vehicle collision noclip to prevent crashes.",
             LangBtn = "🌐 Change Lang",
             MenuBtn = "🏠 Return to Menu",
@@ -993,39 +920,200 @@ runMainScript = function(selectedLanguage)
 
     -- Panel Farm (自動掛機)
     local farmDescLabel = Instance.new("TextLabel", panelFarm)
-    farmDescLabel.Size = UDim2.new(1, -24, 0, 60)
-    farmDescLabel.Position = UDim2.new(0, 12, 0, 12)
+    farmDescLabel.Size = UDim2.new(1, -24, 0, 40)
+    farmDescLabel.Position = UDim2.new(0, 12, 0, 8)
     farmDescLabel.BackgroundTransparency = 1
     farmDescLabel.Text = L.FarmDesc
     farmDescLabel.Font = Enum.Font.Gotham
-    farmDescLabel.TextSize = 12
+    farmDescLabel.TextSize = 11
     farmDescLabel.TextColor3 = Color3.fromRGB(180, 180, 200)
     farmDescLabel.TextXAlignment = Enum.TextXAlignment.Left
     farmDescLabel.TextYAlignment = Enum.TextYAlignment.Top
     farmDescLabel.TextWrapped = true
 
-    local farmToggleBtn = Instance.new("TextButton", panelFarm)
-    farmToggleBtn.Size = UDim2.new(1, -24, 0, 45)
-    farmToggleBtn.Position = UDim2.new(0, 12, 0, 80)
-    farmToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-    farmToggleBtn.BackgroundTransparency = 0.25
-    farmToggleBtn.Text = "AUTO-FARM: " .. L.SwitchOff
-    farmToggleBtn.Font = Enum.Font.GothamBold
-    farmToggleBtn.TextSize = 13
-    farmToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Instance.new("UICorner", farmToggleBtn).CornerRadius = UDim.new(0, 10)
+    local statusText = Instance.new("TextLabel", panelFarm)
+    statusText.Size = UDim2.new(1, -24, 0, 18)
+    statusText.Position = UDim2.new(0, 12, 0, 52)
+    statusText.BackgroundTransparency = 1
+    statusText.Text = "Status: Ready"
+    statusText.TextColor3 = Color3.fromRGB(175, 175, 175)
+    statusText.TextSize = 12
+    statusText.Font = Enum.Font.GothamMedium
+    statusText.TextXAlignment = Enum.TextXAlignment.Left
 
-    farmToggleBtn.Activated:Connect(function()
-        if _G.V29_Mode == "Farm" then
-            _G.V29_Mode = "None"
-        else
-            _G.V29_Mode = "Farm"
-            _G.V29_Waypoint = 1
-            _G.V29_TrafficNoclip = true
+    allTimeLabel = Instance.new("TextLabel", panelFarm)
+    allTimeLabel.Size = UDim2.new(1, -24, 0, 18)
+    allTimeLabel.Position = UDim2.new(0, 12, 0, 72)
+    allTimeLabel.BackgroundTransparency = 1
+    allTimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    allTimeLabel.TextSize = 12
+    allTimeLabel.Font = Enum.Font.GothamBold
+    allTimeLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    longestAFKLabel = Instance.new("TextLabel", panelFarm)
+    longestAFKLabel.Size = UDim2.new(1, -24, 0, 18)
+    longestAFKLabel.Position = UDim2.new(0, 12, 0, 92)
+    longestAFKLabel.BackgroundTransparency = 1
+    longestAFKLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    longestAFKLabel.TextSize = 12
+    longestAFKLabel.Font = Enum.Font.GothamMedium
+    longestAFKLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    updateAllTimeUI()
+    updateLongestAFKUI()
+
+    local autoFarmToggle = Instance.new("TextButton", panelFarm)
+    autoFarmToggle.Size = UDim2.new(1, -24, 0, 42)
+    autoFarmToggle.Position = UDim2.new(0, 12, 0, 118)
+    autoFarmToggle.Text = "Start AutoFarm"
+    autoFarmToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    autoFarmToggle.TextSize = 13
+    autoFarmToggle.Font = Enum.Font.GothamBold
+    autoFarmToggle.BackgroundColor3 = Color3.fromRGB(42, 42, 46)
+    autoFarmToggle.BorderSizePixel = 0
+    Instance.new("UICorner", autoFarmToggle).CornerRadius = UDim.new(0, 10)
+
+    -- 監控 Loop
+    task.spawn(function()
+        local lastKnownCash = 0
+        local lastTimerSec = -1
+        while true do
+            task.wait(0.1)
+            local now = tick()
+            if autoFarmActive and uiElements then
+                local elapsed = now - farmStartTime
+                local elapsedSec = math.floor(elapsed)
+                if elapsedSec ~= lastTimerSec then
+                    lastTimerSec = elapsedSec
+                    uiElements.timeLabel.Text = formatTime(elapsedSec)
+                    if elapsedSec > longestAFKSeconds then
+                        longestAFKSeconds = elapsedSec
+                        updateLongestAFKUI()
+                    end
+                end
+            end
+            
+            local ok, cashVal = pcall(function() return player.leaderstats.Cash.Value end)
+            if ok then
+                local gained = math.max(0, cashVal - lastKnownCash)
+                if gained > 0 and lastKnownCash > 0 then
+                    allTimeMoney = allTimeMoney + gained
+                    updateAllTimeUI()
+                    local sessionEarned = math.max(0, cashVal - farmStartCash)
+                    if uiElements and uiElements.cashEarnedLabel then
+                        uiElements.cashEarnedLabel.Text = "$" .. formatNumber(sessionEarned)
+                    end
+                end
+                lastKnownCash = cashVal
+            end
+            if lastTimerSec and lastTimerSec > 0 and lastTimerSec % 30 == 0 then saveData() end
         end
-        local isOn = (_G.V29_Mode == "Farm")
-        farmToggleBtn.Text = "AUTO-FARM: " .. (isOn and L.SwitchOn or L.SwitchOff)
-        farmToggleBtn.BackgroundColor3 = isOn and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(200, 0, 0)
+    end)
+
+    local function isPlayerSeated()
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChild("Humanoid")
+            if hum and hum.SeatPart then return true end
+        end
+        return false
+    end
+
+    local function stabilizeCar(car)
+        if carStabilizationConnection then carStabilizationConnection:Disconnect() end
+        carStabilizationConnection = RunService.Heartbeat:Connect(function()
+            if not autoFarmActive or not car.Parent or not car.PrimaryPart then
+                if carStabilizationConnection then
+                    carStabilizationConnection:Disconnect()
+                    carStabilizationConnection = nil
+                end
+                return
+            end
+            local cf = car.PrimaryPart.CFrame
+            local pos, look = cf.Position, cf.LookVector
+            car.PrimaryPart.CFrame = car.PrimaryPart.CFrame:Lerp(CFrame.new(pos, pos + Vector3.new(look.X, 0, look.Z)), 0.15)
+            car.PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, car.PrimaryPart.AssemblyAngularVelocity.Y * 0.5, 0)
+        end)
+    end
+
+    local function smoothNavigateToCar(car, targetPos, maxSpeed)
+        local curSpeed = maxSpeed * 0.4
+        while autoFarmActive and isPlayerSeated() do
+            if not car.Parent or not car.PrimaryPart then break end
+            local currentPos = car.PrimaryPart.Position
+            local distance = (targetPos - currentPos).Magnitude
+            if distance < 50 then break end
+            curSpeed = math.min(curSpeed + (maxSpeed * 0.02), maxSpeed)
+            local direction = (targetPos - currentPos).Unit
+            car.PrimaryPart.AssemblyLinearVelocity = car.PrimaryPart.AssemblyLinearVelocity:Lerp(direction * curSpeed, 0.1)
+            local smoothedLook = car.PrimaryPart.CFrame.LookVector:Lerp(Vector3.new(direction.X, 0, direction.Z).Unit, 0.12)
+            car.PrimaryPart.CFrame = car.PrimaryPart.CFrame:Lerp(CFrame.new(currentPos, currentPos + smoothedLook), 0.25)
+            local floorY = IS_SALTFLATS and -13 or -30
+            local resetY = IS_SALTFLATS and -7 or -17
+            if currentPos.Y < floorY then
+                car.PrimaryPart.CFrame = CFrame.new(currentPos.X, resetY, currentPos.Z)
+            end
+            task.wait()
+        end
+    end
+
+    autoFarmToggle.Activated:Connect(function()
+        if not autoFarmActive and not isPlayerSeated() then
+            statusText.Text = "Status: Sit in a vehicle first"
+            statusText.TextColor3 = Color3.fromRGB(255, 130, 130)
+            return
+        end
+        autoFarmActive = not autoFarmActive
+        if autoFarmActive then
+            autoFarmToggle.Text = "Stop AutoFarm"
+            statusText.Text = "Status: Running"
+            statusText.TextColor3 = Color3.fromRGB(100, 255, 150)
+            farmStartCash = player.leaderstats.Cash.Value
+            farmStartTime = tick()
+            if uiElements then
+                uiElements.afkRewards.Visible = true
+                uiElements.cashEarnedLabel.Text = "$0"
+                uiElements.timeLabel.Text = "00:00:00"
+            end
+            task.spawn(function()
+                while autoFarmActive do
+                    if not isPlayerSeated() then break end
+                    local hum = player.Character.Humanoid
+                    local car = hum.SeatPart:FindFirstAncestorWhichIsA("Model")
+                    if not car then break end
+                    local primary = (car:FindFirstChild("Body") and car.Body:FindFirstChild("#Weight")) or car.PrimaryPart
+                    if not primary then break end
+                    car.PrimaryPart = primary
+                    car.PrimaryPart.Anchored = true
+                    car:PivotTo(CFrame.new(WAYPOINTS[1]))
+                    task.wait(0.15)
+                    car.PrimaryPart.Anchored = false
+                    stabilizeCar(car)
+                    task.wait(0.3)
+                    for waypointIndex = 2, #WAYPOINTS do
+                        if not autoFarmActive or not isPlayerSeated() then break end
+                        smoothNavigateToCar(car, WAYPOINTS[waypointIndex], 736)
+                    end
+                    if not autoFarmActive then break end
+                end
+                if carStabilizationConnection then
+                    carStabilizationConnection:Disconnect()
+                    carStabilizationConnection = nil
+                end
+            end)
+        else
+            autoFarmToggle.Text = "Start AutoFarm"
+            statusText.Text = "Status: Stopped"
+            statusText.TextColor3 = Color3.fromRGB(175, 175, 175)
+            saveData()
+            if uiElements then
+                uiElements.afkRewards.Visible = false
+            end
+            if carStabilizationConnection then
+                carStabilizationConnection:Disconnect()
+                carStabilizationConnection = nil
+            end
+        end
     end)
 
     -- Panel Ghost (交通穿透)
