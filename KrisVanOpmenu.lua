@@ -23,6 +23,7 @@ local translations = {
         mm2 = "誰是殺手2",
         midnightChasers = "午夜追逐者",
         stealAnEgg = "偷一個蛋",
+        taxiBoss = "計程車大亨",
         scriptConfirmDesc = "是否確定要執行此腳本？",
         backText = "返回語言選擇",
         btnConfirm = "確定",
@@ -39,6 +40,7 @@ local translations = {
         mm2 = "谁是杀手2",
         midnightChasers = "午夜追逐者",
         stealAnEgg = "偷一个蛋",
+        taxiBoss = "出租车大亨",
         scriptConfirmDesc = "是否确定要执行此脚本？",
         backText = "返回语言选择",
         btnConfirm = "确定",
@@ -55,6 +57,7 @@ local translations = {
         mm2 = "Murder Mystery 2",
         midnightChasers = "Midnight Chasers",
         stealAnEgg = "Steal an egg",
+        taxiBoss = "Taxi Boss",
         scriptConfirmDesc = "Are you sure you want to run this script?",
         backText = "Back to Language",
         btnConfirm = "Confirm",
@@ -206,18 +209,18 @@ ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
 ScriptsPage.BackgroundTransparency = 1
 ScriptsPage.Size = UDim2.new(1, 0, 1, 0)
-ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 290)
+ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 335) -- 增加畫布高度以容納新增的按鈕
 ScriptsPage.ScrollBarThickness = 4
 ScriptsPage.Visible = false
 
--- 宣告 UI 參考變數
-local btn1, btn2, btn3, btn4, btn5, BackBtn
+-- 宣告 UI 參考變數 (新增 btn6)
+local btn1, btn2, btn3, btn4, btn5, btn6, BackBtn
 
 -- 宣告共用的確認彈窗變數
 local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
 local pendingUrl = nil
 
--- 建立腳本按鈕的函數 (稍微縮減高度與間距以適應 270)
+-- 建立腳本按鈕的函數
 local function createScriptBtn(nameKey, posY, url)
     local btn = Instance.new("TextButton")
     btn.Name = nameKey
@@ -250,14 +253,15 @@ btn2 = createScriptBtn("carDealership", 44, "https://raw.githubusercontent.com/n
 btn3 = createScriptBtn("mm2", 88, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanmm2.lua")
 btn4 = createScriptBtn("midnightChasers", 132, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisMidnight.lua")
 btn5 = createScriptBtn("stealAnEgg", 176, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Egg.lua")
+btn6 = createScriptBtn("taxiBoss", 220, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Taxiboss.lua")
 
--- 返回語言選擇按鈕
+-- 返回語言選擇按鈕 (調整 Y 軸位置)
 BackBtn = Instance.new("TextButton")
 BackBtn.Name = "BackBtn"
 BackBtn.Parent = ScriptsPage
 BackBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
 BackBtn.BackgroundTransparency = 0.2
-BackBtn.Position = UDim2.new(0, 0, 0, 224)
+BackBtn.Position = UDim2.new(0, 0, 0, 268)
 BackBtn.Size = UDim2.new(1, -6, 0, 38)
 BackBtn.Font = Enum.Font.SourceSansSemibold
 BackBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -281,6 +285,7 @@ local function updateTexts()
     btn3.Text = translations[currentLang].mm2
     btn4.Text = translations[currentLang].midnightChasers
     btn5.Text = translations[currentLang].stealAnEgg
+    btn6.Text = translations[currentLang].taxiBoss
     BackBtn.Text = translations[currentLang].backText
 end
 
@@ -419,3 +424,4 @@ Header.InputEnded:Connect(function(input)
         dragging = false
     end
 end)
+
