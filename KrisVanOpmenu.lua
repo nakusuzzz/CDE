@@ -8,7 +8,7 @@ end
 local currentLang = "zh-TW"
 
 -- 設定更新後的腳本密碼
-local scriptPassword = "Ziwjri19fk2o.s92j"
+local scriptPassword = "Krisvanlua_1ojdh8wiwh"
 
 -- 多語言文字字典
 local translations = {
@@ -22,6 +22,7 @@ local translations = {
         carDealership = "汽車經銷商大亨",
         mm2 = "誰是殺手2",
         midnightChasers = "午夜追逐者",
+        stealAnEgg = "偷一個蛋",
         scriptConfirmDesc = "是否確定要執行此腳本？",
         backText = "返回語言選擇",
         btnConfirm = "確定",
@@ -37,6 +38,7 @@ local translations = {
         carDealership = "汽车经销商大亨",
         mm2 = "谁是杀手2",
         midnightChasers = "午夜追逐者",
+        stealAnEgg = "偷一个蛋",
         scriptConfirmDesc = "是否确定要执行此脚本？",
         backText = "返回语言选择",
         btnConfirm = "确定",
@@ -52,6 +54,7 @@ local translations = {
         carDealership = "Car Dealership Tycoon",
         mm2 = "Murder Mystery 2",
         midnightChasers = "Midnight Chasers",
+        stealAnEgg = "Steal an egg",
         scriptConfirmDesc = "Are you sure you want to run this script?",
         backText = "Back to Language",
         btnConfirm = "Confirm",
@@ -65,7 +68,7 @@ ScreenGui.Name = "DeltaCustomUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- 主視窗框架 (高度縮小至 270)
+-- 主視窗框架 (高度維持 270)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -203,18 +206,18 @@ ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
 ScriptsPage.BackgroundTransparency = 1
 ScriptsPage.Size = UDim2.new(1, 0, 1, 0)
-ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 270)
+ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 290)
 ScriptsPage.ScrollBarThickness = 4
 ScriptsPage.Visible = false
 
 -- 宣告 UI 參考變數
-local btn1, btn2, btn3, btn4, BackBtn
+local btn1, btn2, btn3, btn4, btn5, BackBtn
 
 -- 宣告共用的確認彈窗變數
 local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
 local pendingUrl = nil
 
--- 建立腳本按鈕的函數
+-- 建立腳本按鈕的函數 (稍微縮減高度與間距以適應 270)
 local function createScriptBtn(nameKey, posY, url)
     local btn = Instance.new("TextButton")
     btn.Name = nameKey
@@ -222,10 +225,10 @@ local function createScriptBtn(nameKey, posY, url)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     btn.BackgroundTransparency = 0.2
     btn.Position = UDim2.new(0, 0, 0, posY)
-    btn.Size = UDim2.new(1, -6, 0, 45)
+    btn.Size = UDim2.new(1, -6, 0, 38)
     btn.Font = Enum.Font.SourceSansSemibold
     btn.TextColor3 = Color3.fromRGB(240, 240, 240)
-    btn.TextSize = 15
+    btn.TextSize = 14
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
@@ -243,9 +246,10 @@ local function createScriptBtn(nameKey, posY, url)
 end
 
 btn1 = createScriptBtn("drivingEmpire", 0, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanauto.lua")
-btn2 = createScriptBtn("carDealership", 52, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVancdt.lua")
-btn3 = createScriptBtn("mm2", 104, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanmm2.lua")
-btn4 = createScriptBtn("midnightChasers", 156, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisMidnight.lua")
+btn2 = createScriptBtn("carDealership", 44, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVancdt.lua")
+btn3 = createScriptBtn("mm2", 88, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisVanmm2.lua")
+btn4 = createScriptBtn("midnightChasers", 132, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisMidnight.lua")
+btn5 = createScriptBtn("stealAnEgg", 176, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Egg.lua")
 
 -- 返回語言選擇按鈕
 BackBtn = Instance.new("TextButton")
@@ -253,11 +257,11 @@ BackBtn.Name = "BackBtn"
 BackBtn.Parent = ScriptsPage
 BackBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
 BackBtn.BackgroundTransparency = 0.2
-BackBtn.Position = UDim2.new(0, 0, 0, 215)
-BackBtn.Size = UDim2.new(1, -6, 0, 45)
+BackBtn.Position = UDim2.new(0, 0, 0, 224)
+BackBtn.Size = UDim2.new(1, -6, 0, 38)
 BackBtn.Font = Enum.Font.SourceSansSemibold
 BackBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-BackBtn.TextSize = 15
+BackBtn.TextSize = 14
 Instance.new("UICorner", BackBtn).CornerRadius = UDim.new(0, 6)
 
 BackBtn.MouseButton1Click:Connect(function()
@@ -276,6 +280,7 @@ local function updateTexts()
     btn2.Text = translations[currentLang].carDealership
     btn3.Text = translations[currentLang].mm2
     btn4.Text = translations[currentLang].midnightChasers
+    btn5.Text = translations[currentLang].stealAnEgg
     BackBtn.Text = translations[currentLang].backText
 end
 
@@ -414,4 +419,3 @@ Header.InputEnded:Connect(function(input)
         dragging = false
     end
 end)
-
