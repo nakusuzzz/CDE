@@ -8,7 +8,7 @@ end
 local currentLang = "zh-TW"
 
 -- 設定更新後的腳本密碼
-local scriptPassword = "Krisvanlua_1ojdh8wiwh"
+local scriptPassword = "Krisvanlua_10jdnsnfiekcon"
 
 -- 多語言文字字典
 local translations = {
@@ -24,6 +24,7 @@ local translations = {
         midnightChasers = "午夜追逐者",
         stealAnEgg = "偷一個蛋",
         taxiBoss = "計程車大亨",
+        rideStorm = "騎風暴",
         scriptConfirmDesc = "是否確定要執行此腳本？",
         backText = "返回語言選擇",
         btnConfirm = "確定",
@@ -41,6 +42,7 @@ local translations = {
         midnightChasers = "午夜追逐者",
         stealAnEgg = "偷一个蛋",
         taxiBoss = "出租车大亨",
+        rideStorm = "骑风暴",
         scriptConfirmDesc = "是否确定要执行此脚本？",
         backText = "返回语言选择",
         btnConfirm = "确定",
@@ -58,6 +60,7 @@ local translations = {
         midnightChasers = "Midnight Chasers",
         stealAnEgg = "Steal an egg",
         taxiBoss = "Taxi Boss",
+        rideStorm = "Ride Storm",
         scriptConfirmDesc = "Are you sure you want to run this script?",
         backText = "Back to Language",
         btnConfirm = "Confirm",
@@ -71,15 +74,15 @@ ScreenGui.Name = "DeltaCustomUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- 主視窗框架 (高度維持 270)
+-- 主視窗框架 (高度微調至 300 以容納新按鈕)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 MainFrame.BackgroundTransparency = 0.25
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -135)
-MainFrame.Size = UDim2.new(0, 400, 0, 270)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 400, 0, 300)
 MainFrame.Active = true
 
 -- 紫色外框
@@ -209,12 +212,12 @@ ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
 ScriptsPage.BackgroundTransparency = 1
 ScriptsPage.Size = UDim2.new(1, 0, 1, 0)
-ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 335) -- 增加畫布高度以容納新增的按鈕
+ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 380) -- 再次增加畫布高度以容納新增的按鈕
 ScriptsPage.ScrollBarThickness = 4
 ScriptsPage.Visible = false
 
--- 宣告 UI 參考變數 (新增 btn6)
-local btn1, btn2, btn3, btn4, btn5, btn6, BackBtn
+-- 宣告 UI 參考變數 (新增 btn7)
+local btn1, btn2, btn3, btn4, btn5, btn6, btn7, BackBtn
 
 -- 宣告共用的確認彈窗變數
 local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
@@ -254,6 +257,7 @@ btn3 = createScriptBtn("mm2", 88, "https://raw.githubusercontent.com/nakusuzzz/C
 btn4 = createScriptBtn("midnightChasers", 132, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/KrisMidnight.lua")
 btn5 = createScriptBtn("stealAnEgg", 176, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Egg.lua")
 btn6 = createScriptBtn("taxiBoss", 220, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Taxiboss.lua")
+btn7 = createScriptBtn("rideStorm", 264, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Ride.lua")
 
 -- 返回語言選擇按鈕 (調整 Y 軸位置)
 BackBtn = Instance.new("TextButton")
@@ -261,7 +265,7 @@ BackBtn.Name = "BackBtn"
 BackBtn.Parent = ScriptsPage
 BackBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
 BackBtn.BackgroundTransparency = 0.2
-BackBtn.Position = UDim2.new(0, 0, 0, 268)
+BackBtn.Position = UDim2.new(0, 0, 0, 312)
 BackBtn.Size = UDim2.new(1, -6, 0, 38)
 BackBtn.Font = Enum.Font.SourceSansSemibold
 BackBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -286,6 +290,7 @@ local function updateTexts()
     btn4.Text = translations[currentLang].midnightChasers
     btn5.Text = translations[currentLang].stealAnEgg
     btn6.Text = translations[currentLang].taxiBoss
+    btn7.Text = translations[currentLang].rideStorm
     BackBtn.Text = translations[currentLang].backText
 end
 
