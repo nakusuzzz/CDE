@@ -30,7 +30,7 @@ pcall(function()
     end
 end)
 
--- 多語言文字字典
+-- 多語言文字字典 (新增管理員功能按鈕的翻譯)
 local translations = {
     ["zh-TW"] = {
         title = "KrisVan 遊戲輔助選單 v1.0.3",
@@ -46,6 +46,7 @@ local translations = {
         stealAnEgg = "偷一個蛋",
         taxiBoss = "計程車大亨",
         rideStorm = "騎風暴",
+        adminPosDisplay = "📍 即時座標顯示 (管理員專屬)",
         scriptConfirmDesc = "是否確定要執行此腳本？",
         backText = "返回語言選擇",
         btnConfirm = "確定",
@@ -65,6 +66,7 @@ local translations = {
         stealAnEgg = "偷一个蛋",
         taxiBoss = "出租车大亨",
         rideStorm = "骑风暴",
+        adminPosDisplay = "📍 实时坐标显示 (管理员专属)",
         scriptConfirmDesc = "是否确定要执行此脚本？",
         backText = "返回语言选择",
         btnConfirm = "确定",
@@ -84,6 +86,7 @@ local translations = {
         stealAnEgg = "Steal an egg",
         taxiBoss = "Taxi Boss",
         rideStorm = "Ride Storm",
+        adminPosDisplay = "📍 Live Position Display (Admin)",
         scriptConfirmDesc = "Are you sure you want to run this script?",
         backText = "Back to Language",
         btnConfirm = "Confirm",
@@ -235,13 +238,14 @@ ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
 ScriptsPage.BackgroundTransparency = 1
 ScriptsPage.Size = UDim2.new(1, 0, 1, 0)
-ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 380)
+ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 430) -- 加大容量以容納管理員按鈕
 ScriptsPage.ScrollBarThickness = 4
 ScriptsPage.Visible = false
 
-local btn1, btn2, btn3, btn4, btn5, btn6, btn7, BackBtn
+local btn1, btn2, btn3, btn4, btn5, btn6, btn7, adminBtn, BackBtn
 local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
 local pendingUrl = nil
+local pendingCallback = nil -- 用於支援不關閉選單的自定義動作
 
 local function createScriptBtn(nameKey, posY, url)
     local btn = Instance.new("TextButton")
@@ -261,6 +265,7 @@ local function createScriptBtn(nameKey, posY, url)
     
     btn.MouseButton1Click:Connect(function()
         pendingUrl = url
+        pendingCallback = nil
         DialogText.Text = translations[currentLang].scriptConfirmDesc
         YesBtn.Text = translations[currentLang].btnConfirm
         NoBtn.Text = translations[currentLang].btnCancel
@@ -278,6 +283,7 @@ btn5 = createScriptBtn("stealAnEgg", 176, "https://raw.githubusercontent.com/nak
 btn6 = createScriptBtn("taxiBoss", 220, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Taxiboss.lua")
 btn7 = createScriptBtn("rideStorm", 264, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Ride.lua")
 
+-- 建立返回按鈕 (預設位置在一般按鈕下方)
 BackBtn = Instance.new("TextButton")
 BackBtn.Name = "BackBtn"
 BackBtn.Parent = ScriptsPage
@@ -308,10 +314,13 @@ local function updateTexts()
     btn5.Text = translations[currentLang].stealAnEgg
     btn6.Text = translations[currentLang].taxiBoss
     btn7.Text = translations[currentLang].rideStorm
+    if adminBtn then
+        adminBtn.Text = translations[currentLang].adminPosDisplay
+    end
     BackBtn.Text = translations[currentLang].backText
 end
 
--- 密碼驗證邏輯 (含白名單檢查)
+-- 密碼驗證邏輯 (含白名單檢查與管理員動態生成)
 PwdSubmitBtn.MouseButton1Click:Connect(function()
     if not isUserRegistered then
         PwdErrorLabel.Text = translations[currentLang].notAuthorized
@@ -322,6 +331,79 @@ PwdSubmitBtn.MouseButton1Click:Connect(function()
     end
 
     if PwdBox.Text == expectedPassword then
+        -- 檢查是否為管理員密碼 ("KrisVan_admin")
+        if PwdBox.Text == "KrisVan_admin" then
+            ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 410)
+            
+            -- 動態生成管理員專屬按鈕（點擊後不關閉選單）
+            adminBtn = Instance.new("TextButton")
+            adminBtn.Name = "AdminPosBtn"
+            adminBtn.Parent = ScriptsPage
+            adminBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 180) -- 特殊紫色標示
+            adminBtn.BackgroundTransparency = 0.2
+            adminBtn.Position = UDim2.new(0, 0, 0, 312)
+            adminBtn.Size = UDim2.new(1, -6, 0, 38)
+            adminBtn.Font = Enum.Font.SourceSansBold
+            adminBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            adminBtn.TextSize = 14
+            adminBtn.Text = translations[currentLang].adminPosDisplay
+            Instance.new("UICorner", adminBtn).CornerRadius = UDim.new(0, 6)
+            
+            -- 將原本的返回按鈕往下挪
+            BackBtn.Position = UDim2.new(0, 0, 0, 356)
+            
+            -- 綁定管理員按鈕點擊事件：執行座標顯示，且「不」銷毀選單
+            adminBtn.MouseButton1Click:Connect(function()
+                pendingUrl = nil
+                pendingCallback = function()
+                    -- 內嵌你的座標顯示器邏輯
+                    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+                    if playerGui:FindFirstChild("PositionDisplayGui") then
+                        playerGui.PositionDisplayGui:Destroy()
+                    end
+
+                    local screenGui = Instance.new("ScreenGui")
+                    screenGui.Name = "PositionDisplayGui"
+                    screenGui.ResetOnSpawn = false
+                    screenGui.Parent = playerGui
+
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Name = "PosLabel"
+                    textLabel.Size = UDim2.new(0, 220, 0, 50)
+                    textLabel.Position = UDim2.new(1, -230, 0, 10)
+                    textLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                    textLabel.BackgroundTransparency = 0.5
+                    textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                    textLabel.TextSize = 16
+                    textLabel.Font = Enum.Font.Code
+                    textLabel.Text = "正在載入座標..."
+                    textLabel.Parent = screenGui
+
+                    local uiCorner = Instance.new("UICorner")
+                    uiCorner.CornerRadius = UDim.new(0, 8)
+                    uiCorner.Parent = textLabel
+
+                    task.spawn(function()
+                        while screenGui.Parent do
+                            local character = LocalPlayer.Character
+                            if character and character:FindFirstChild("HumanoidRootPart") then
+                                local pos = character.HumanoidRootPart.Position
+                                textLabel.Text = string.format("X: %.1f\nY: %.1f\nZ: %.1f", pos.X, pos.Y, pos.Z)
+                            else
+                                textLabel.Text = "尋找中人物位置..."
+                            end
+                            task.wait(0.2)
+                        end
+                    end)
+                end
+                
+                DialogText.Text = translations[currentLang].scriptConfirmDesc
+                YesBtn.Text = translations[currentLang].btnConfirm
+                NoBtn.Text = translations[currentLang].btnCancel
+                ConfirmOverlay.Visible = true
+            end)
+        end
+
         PasswordPage.Visible = false
         ScriptsPage.Visible = true
     else
@@ -411,8 +493,13 @@ NoBtn.TextSize = 14
 NoBtn.ZIndex = 12
 Instance.new("UICorner", NoBtn).CornerRadius = UDim.new(0, 6)
 
+-- 確認按鈕行為：如果是管理員按鈕，執行完後不銷毀介面；一般腳本則會執行並銷毀介面
 YesBtn.MouseButton1Click:Connect(function()
-    if pendingUrl then
+    ConfirmOverlay.Visible = false
+    if pendingCallback then
+        pendingCallback()
+        pendingCallback = nil
+    elseif pendingUrl then
         local urlToRun = pendingUrl
         ScreenGui:Destroy()
         pcall(function() loadstring(game:HttpGet(urlToRun))() end)
@@ -422,6 +509,7 @@ end)
 NoBtn.MouseButton1Click:Connect(function()
     ConfirmOverlay.Visible = false
     pendingUrl = nil
+    pendingCallback = nil
 end)
 
 -- 拖動功能
