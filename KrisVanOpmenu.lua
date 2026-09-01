@@ -30,7 +30,7 @@ pcall(function()
     end
 end)
 
--- 多語言文字字典 (新增管理員功能按鈕的翻譯)
+-- 多語言文字字典
 local translations = {
     ["zh-TW"] = {
         title = "KrisVan 遊戲輔助選單 v1.0.3",
@@ -138,12 +138,30 @@ TitleLabel.Name = "TitleLabel"
 TitleLabel.Parent = Header
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
-TitleLabel.Size = UDim2.new(0, 350, 1, 0)
+TitleLabel.Size = UDim2.new(0, 320, 1, 0)
 TitleLabel.Font = Enum.Font.SourceSansSemibold
 TitleLabel.Text = "KrisVan 遊戲輔助"
 TitleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
 TitleLabel.TextSize = 16
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- 主選單專屬：右上角關閉按鈕
+local MainCloseBtn = Instance.new("TextButton")
+MainCloseBtn.Name = "MainCloseBtn"
+MainCloseBtn.Parent = Header
+MainCloseBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+MainCloseBtn.BackgroundTransparency = 0.3
+MainCloseBtn.Position = UDim2.new(1, -32, 0.5, -13)
+MainCloseBtn.Size = UDim2.new(0, 26, 0, 26)
+MainCloseBtn.Font = Enum.Font.SourceSansBold
+MainCloseBtn.Text = "×"
+MainCloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainCloseBtn.TextSize = 16
+Instance.new("UICorner", MainCloseBtn).CornerRadius = UDim.new(0, 6)
+
+MainCloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
 -- 內容容器
 local Container = Instance.new("Frame")
@@ -238,14 +256,14 @@ ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
 ScriptsPage.BackgroundTransparency = 1
 ScriptsPage.Size = UDim2.new(1, 0, 1, 0)
-ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 430) -- 加大容量以容納管理員按鈕
+ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 430)
 ScriptsPage.ScrollBarThickness = 4
 ScriptsPage.Visible = false
 
 local btn1, btn2, btn3, btn4, btn5, btn6, btn7, adminBtn, BackBtn
 local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
 local pendingUrl = nil
-local pendingCallback = nil -- 用於支援不關閉選單的自定義動作
+local pendingCallback = nil
 
 local function createScriptBtn(nameKey, posY, url)
     local btn = Instance.new("TextButton")
@@ -283,7 +301,6 @@ btn5 = createScriptBtn("stealAnEgg", 176, "https://raw.githubusercontent.com/nak
 btn6 = createScriptBtn("taxiBoss", 220, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Taxiboss.lua")
 btn7 = createScriptBtn("rideStorm", 264, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Ride.lua")
 
--- 建立返回按鈕 (預設位置在一般按鈕下方)
 BackBtn = Instance.new("TextButton")
 BackBtn.Name = "BackBtn"
 BackBtn.Parent = ScriptsPage
@@ -320,7 +337,7 @@ local function updateTexts()
     BackBtn.Text = translations[currentLang].backText
 end
 
--- 密碼驗證邏輯 (含白名單檢查與管理員動態生成)
+-- 密碼驗證邏輯
 PwdSubmitBtn.MouseButton1Click:Connect(function()
     if not isUserRegistered then
         PwdErrorLabel.Text = translations[currentLang].notAuthorized
@@ -335,11 +352,10 @@ PwdSubmitBtn.MouseButton1Click:Connect(function()
         if PwdBox.Text == "KrisVan_admin" then
             ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 410)
             
-            -- 動態生成管理員專屬按鈕（點擊後不關閉選單）
             adminBtn = Instance.new("TextButton")
             adminBtn.Name = "AdminPosBtn"
             adminBtn.Parent = ScriptsPage
-            adminBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 180) -- 特殊紫色標示
+            adminBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 180)
             adminBtn.BackgroundTransparency = 0.2
             adminBtn.Position = UDim2.new(0, 0, 0, 312)
             adminBtn.Size = UDim2.new(1, -6, 0, 38)
@@ -349,14 +365,11 @@ PwdSubmitBtn.MouseButton1Click:Connect(function()
             adminBtn.Text = translations[currentLang].adminPosDisplay
             Instance.new("UICorner", adminBtn).CornerRadius = UDim.new(0, 6)
             
-            -- 將原本的返回按鈕往下挪
             BackBtn.Position = UDim2.new(0, 0, 0, 356)
             
-            -- 綁定管理員按鈕點擊事件：執行座標顯示，且「不」銷毀選單
             adminBtn.MouseButton1Click:Connect(function()
                 pendingUrl = nil
                 pendingCallback = function()
-                    -- 內嵌你的座標顯示器邏輯
                     local playerGui = LocalPlayer:WaitForChild("PlayerGui")
                     if playerGui:FindFirstChild("PositionDisplayGui") then
                         playerGui.PositionDisplayGui:Destroy()
@@ -367,28 +380,50 @@ PwdSubmitBtn.MouseButton1Click:Connect(function()
                     screenGui.ResetOnSpawn = false
                     screenGui.Parent = playerGui
 
+                    -- 【已修正】將 Y 軸強制設為 0，緊貼畫面最上方，並稍微縮小高度
                     local textLabel = Instance.new("TextLabel")
                     textLabel.Name = "PosLabel"
-                    textLabel.Size = UDim2.new(0, 220, 0, 50)
-                    textLabel.Position = UDim2.new(1, -230, 0, 10)
+                    textLabel.Size = UDim2.new(0, 320, 0, 30)
+                    textLabel.Position = UDim2.new(0.5, -160, 0, 0) -- 完美貼齊最上方
                     textLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
                     textLabel.BackgroundTransparency = 0.5
                     textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-                    textLabel.TextSize = 16
+                    textLabel.TextSize = 14
                     textLabel.Font = Enum.Font.Code
                     textLabel.Text = "正在載入座標..."
                     textLabel.Parent = screenGui
 
                     local uiCorner = Instance.new("UICorner")
-                    uiCorner.CornerRadius = UDim.new(0, 8)
+                    uiCorner.CornerRadius = UDim.new(0, 6)
                     uiCorner.Parent = textLabel
+
+                    -- 座標顯示器本身的關閉按鈕
+                    local closeBtn = Instance.new("TextButton")
+                    closeBtn.Name = "CloseBtn"
+                    closeBtn.Size = UDim2.new(0, 24, 0, 24)
+                    closeBtn.Position = UDim2.new(1, -27, 0.5, -12)
+                    closeBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+                    closeBtn.BackgroundTransparency = 0.3
+                    closeBtn.Font = Enum.Font.SourceSansBold
+                    closeBtn.Text = "×"
+                    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    closeBtn.TextSize = 16
+                    closeBtn.Parent = textLabel
+
+                    local closeCorner = Instance.new("UICorner")
+                    closeCorner.CornerRadius = UDim.new(0, 4)
+                    closeCorner.Parent = closeBtn
+
+                    closeBtn.MouseButton1Click:Connect(function()
+                        screenGui:Destroy()
+                    end)
 
                     task.spawn(function()
                         while screenGui.Parent do
                             local character = LocalPlayer.Character
                             if character and character:FindFirstChild("HumanoidRootPart") then
                                 local pos = character.HumanoidRootPart.Position
-                                textLabel.Text = string.format("X: %.1f\nY: %.1f\nZ: %.1f", pos.X, pos.Y, pos.Z)
+                                textLabel.Text = string.format("X：%.1f  Y：%.1f  Z：%.1f", pos.X, pos.Y, pos.Z)
                             else
                                 textLabel.Text = "尋找中人物位置..."
                             end
@@ -493,7 +528,6 @@ NoBtn.TextSize = 14
 NoBtn.ZIndex = 12
 Instance.new("UICorner", NoBtn).CornerRadius = UDim.new(0, 6)
 
--- 確認按鈕行為：如果是管理員按鈕，執行完後不銷毀介面；一般腳本則會執行並銷毀介面
 YesBtn.MouseButton1Click:Connect(function()
     ConfirmOverlay.Visible = false
     if pendingCallback then
