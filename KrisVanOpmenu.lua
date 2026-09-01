@@ -1,5 +1,9 @@
 -- 確保不會重複生成
 local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 if CoreGui:FindFirstChild("DeltaCustomUI") then
     CoreGui.DeltaCustomUI:Destroy()
 end
@@ -7,8 +11,24 @@ end
 -- 當前選擇的語言 ("zh-TW" 繁體中文, "zh-CN" 简体中文, "en" English)
 local currentLang = "zh-TW"
 
--- 設定更新後的腳本密碼
-local scriptPassword = "Krisvanlua_10jdnsnfiekcon"
+-- 從指定的白名單網址動態載入帳號密碼對照表
+local expectedPassword = ""
+local isUserRegistered = false
+
+pcall(function()
+    local jsonUrl = "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/password.json"
+    local response = game:HttpGet(jsonUrl)
+    local data = HttpService:JSONDecode(response)
+    
+    -- 取得當前登入玩家的 UserId (轉成字串以符合 JSON 的鍵值)
+    local myUserId = tostring(LocalPlayer.UserId)
+    
+    -- 檢查對照表內有沒有這個帳號
+    if data[myUserId] then
+        expectedPassword = data[myUserId]
+        isUserRegistered = true
+    end
+end)
 
 -- 多語言文字字典
 local translations = {
@@ -18,6 +38,7 @@ local translations = {
         pwdPrompt = "請輸入執行密碼：",
         pwdPlaceholder = "輸入密碼...",
         pwdError = "❌ 密碼錯誤，請重新輸入！",
+        notAuthorized = "❌ 此帳號未獲授權！",
         drivingEmpire = "駕駛帝國",
         carDealership = "汽車經銷商大亨",
         mm2 = "誰是殺手2",
@@ -36,6 +57,7 @@ local translations = {
         pwdPrompt = "请输入执行密码：",
         pwdPlaceholder = "输入密码...",
         pwdError = "❌ 密码错误，请重新输入！",
+        notAuthorized = "❌ 此账号未获授权！",
         drivingEmpire = "驾驶帝国",
         carDealership = "汽车经销商大亨",
         mm2 = "谁是杀手2",
@@ -54,6 +76,7 @@ local translations = {
         pwdPrompt = "Please enter password:",
         pwdPlaceholder = "Enter password...",
         pwdError = "❌ Incorrect password, try again!",
+        notAuthorized = "❌ This account is not authorized!",
         drivingEmpire = "Driving Empire",
         carDealership = "Car Dealership Tycoon",
         mm2 = "Murder Mystery 2",
@@ -74,7 +97,7 @@ ScreenGui.Name = "DeltaCustomUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- 主視窗框架 (高度微調至 300 以容納新按鈕)
+-- 主視窗框架
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -127,7 +150,7 @@ Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 10, 0, 42)
 Container.Size = UDim2.new(1, -20, 1, -50)
 
--- 畫面 1：語言選單頁面 (預設顯示)
+-- 畫面 1：語言選單頁面
 local LangPage = Instance.new("ScrollingFrame")
 LangPage.Name = "LangPage"
 LangPage.Parent = Container
@@ -146,7 +169,7 @@ LangPrompt.Text = "請選擇您的語言 / Please Select Language"
 LangPrompt.TextColor3 = Color3.fromRGB(240, 240, 240)
 LangPrompt.TextSize = 15
 
--- 畫面 2：密碼輸入頁面 (預設隱藏)
+-- 畫面 2：密碼輸入頁面
 local PasswordPage = Instance.new("Frame")
 PasswordPage.Name = "PasswordPage"
 PasswordPage.Parent = Container
@@ -206,24 +229,20 @@ PwdSubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 PwdSubmitBtn.TextSize = 16
 Instance.new("UICorner", PwdSubmitBtn).CornerRadius = UDim.new(0, 6)
 
--- 畫面 3：腳本選單頁面 (預設隱藏)
+-- 畫面 3：腳本選單頁面
 local ScriptsPage = Instance.new("ScrollingFrame")
 ScriptsPage.Name = "ScriptsPage"
 ScriptsPage.Parent = Container
 ScriptsPage.BackgroundTransparency = 1
 ScriptsPage.Size = UDim2.new(1, 0, 1, 0)
-ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 380) -- 再次增加畫布高度以容納新增的按鈕
+ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 380)
 ScriptsPage.ScrollBarThickness = 4
 ScriptsPage.Visible = false
 
--- 宣告 UI 參考變數 (新增 btn7)
 local btn1, btn2, btn3, btn4, btn5, btn6, btn7, BackBtn
-
--- 宣告共用的確認彈窗變數
 local ConfirmOverlay, DialogBox, DialogText, YesBtn, NoBtn
 local pendingUrl = nil
 
--- 建立腳本按鈕的函數
 local function createScriptBtn(nameKey, posY, url)
     local btn = Instance.new("TextButton")
     btn.Name = nameKey
@@ -259,7 +278,6 @@ btn5 = createScriptBtn("stealAnEgg", 176, "https://raw.githubusercontent.com/nak
 btn6 = createScriptBtn("taxiBoss", 220, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Taxiboss.lua")
 btn7 = createScriptBtn("rideStorm", 264, "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/Ride.lua")
 
--- 返回語言選擇按鈕 (調整 Y 軸位置)
 BackBtn = Instance.new("TextButton")
 BackBtn.Name = "BackBtn"
 BackBtn.Parent = ScriptsPage
@@ -277,7 +295,6 @@ BackBtn.MouseButton1Click:Connect(function()
     LangPage.Visible = true
 end)
 
--- 更新文字內容的函數
 local function updateTexts()
     TitleLabel.Text = translations[currentLang].title
     LangPrompt.Text = translations[currentLang].selectLangTitle
@@ -294,22 +311,27 @@ local function updateTexts()
     BackBtn.Text = translations[currentLang].backText
 end
 
--- 密碼驗證邏輯
+-- 密碼驗證邏輯 (含白名單檢查)
 PwdSubmitBtn.MouseButton1Click:Connect(function()
-    if PwdBox.Text == scriptPassword then
+    if not isUserRegistered then
+        PwdErrorLabel.Text = translations[currentLang].notAuthorized
+        task.delay(2, function()
+            if PwdErrorLabel then PwdErrorLabel.Text = "" end
+        end)
+        return
+    end
+
+    if PwdBox.Text == expectedPassword then
         PasswordPage.Visible = false
         ScriptsPage.Visible = true
     else
         PwdErrorLabel.Text = translations[currentLang].pwdError
         task.delay(2, function()
-            if PwdErrorLabel then
-                PwdErrorLabel.Text = ""
-            end
+            if PwdErrorLabel then PwdErrorLabel.Text = "" end
         end)
     end
 end)
 
--- 建立語言選擇按鈕 (選擇後進入密碼頁面)
 local function createLangSelectBtn(langCode, langName, posY)
     local btn = Instance.new("TextButton")
     btn.Parent = LangPage
@@ -338,7 +360,6 @@ createLangSelectBtn("zh-TW", "繁體中文", 40)
 createLangSelectBtn("zh-CN", "简体中文", 92)
 createLangSelectBtn("en", "English", 144)
 
--- 二次確認彈窗
 ConfirmOverlay = Instance.new("Frame")
 ConfirmOverlay.Name = "ConfirmOverlay"
 ConfirmOverlay.Parent = ScreenGui
@@ -390,7 +411,6 @@ NoBtn.TextSize = 14
 NoBtn.ZIndex = 12
 Instance.new("UICorner", NoBtn).CornerRadius = UDim.new(0, 6)
 
--- 確定按鈕 (執行腳本)
 YesBtn.MouseButton1Click:Connect(function()
     if pendingUrl then
         local urlToRun = pendingUrl
@@ -399,7 +419,6 @@ YesBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 取消按鈕
 NoBtn.MouseButton1Click:Connect(function()
     ConfirmOverlay.Visible = false
     pendingUrl = nil
