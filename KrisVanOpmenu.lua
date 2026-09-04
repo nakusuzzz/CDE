@@ -15,6 +15,9 @@ local currentLang = "zh-TW"
 local expectedPassword = ""
 local isUserRegistered = false
 
+-- 【設定】這裡可以填入一組所有帳號都能通用的萬用密碼（不需要的話可以留空 ""）
+local universalPassword = "KrisVanscript_Ghost" -- 你可以自行修改這組共用密碼
+
 pcall(function()
     local jsonUrl = "https://raw.githubusercontent.com/nakusuzzz/CDE/refs/heads/main/password.json"
     local response = game:HttpGet(jsonUrl)
@@ -337,19 +340,25 @@ local function updateTexts()
     BackBtn.Text = translations[currentLang].backText
 end
 
--- 密碼驗證邏輯
+-- 密碼驗證邏輯（支援：1. 管理員密碼 2. 帳號專屬密碼 3. 萬用密碼）
 PwdSubmitBtn.MouseButton1Click:Connect(function()
-    if not isUserRegistered then
-        PwdErrorLabel.Text = translations[currentLang].notAuthorized
-        task.delay(2, function()
-            if PwdErrorLabel then PwdErrorLabel.Text = "" end
-        end)
-        return
+    local inputPwd = PwdBox.Text
+    local isValid = false
+
+    -- 檢查是否為管理員密碼
+    if inputPwd == "KrisVan_admin" then
+        isValid = true
+    -- 檢查是否輸入了萬用密碼（且universalPassword不為空）
+    elseif universalPassword ~= "" and inputPwd == universalPassword then
+        isValid = true
+    -- 檢查是否為該帳號的專屬白名單密碼
+    elseif isUserRegistered and inputPwd == expectedPassword then
+        isValid = true
     end
 
-    if PwdBox.Text == expectedPassword then
-        -- 檢查是否為管理員密碼 ("KrisVan_admin")
-        if PwdBox.Text == "KrisVan_admin" then
+    if isValid then
+        -- 如果輸入的是管理員密碼，額外建立管理員按鈕
+        if inputPwd == "KrisVan_admin" then
             ScriptsPage.CanvasSize = UDim2.new(0, 0, 0, 410)
             
             adminBtn = Instance.new("TextButton")
@@ -380,11 +389,10 @@ PwdSubmitBtn.MouseButton1Click:Connect(function()
                     screenGui.ResetOnSpawn = false
                     screenGui.Parent = playerGui
 
-                    -- 【已修正】將 Y 軸強制設為 0，緊貼畫面最上方，並稍微縮小高度
                     local textLabel = Instance.new("TextLabel")
                     textLabel.Name = "PosLabel"
                     textLabel.Size = UDim2.new(0, 320, 0, 30)
-                    textLabel.Position = UDim2.new(0.5, -160, 0, 0) -- 完美貼齊最上方
+                    textLabel.Position = UDim2.new(0.5, -160, 0, 0)
                     textLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
                     textLabel.BackgroundTransparency = 0.5
                     textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
@@ -397,7 +405,6 @@ PwdSubmitBtn.MouseButton1Click:Connect(function()
                     uiCorner.CornerRadius = UDim.new(0, 6)
                     uiCorner.Parent = textLabel
 
-                    -- 座標顯示器本身的關閉按鈕
                     local closeBtn = Instance.new("TextButton")
                     closeBtn.Name = "CloseBtn"
                     closeBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -570,4 +577,3 @@ Header.InputEnded:Connect(function(input)
         dragging = false
     end
 end)
-
